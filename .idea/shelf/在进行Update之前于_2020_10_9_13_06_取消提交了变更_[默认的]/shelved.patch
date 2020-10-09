@@ -1,0 +1,2364 @@
+Index: mall-product/src/main/java/com/qian/mall/product/controller/AttrController.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+>package com.qian.mall.product.controller;\r\n\r\nimport java.util.Arrays;\r\nimport java.util.Map;\r\n\r\n\r\nimport org.springframework.beans.factory.annotation.Autowired;\r\nimport org.springframework.web.bind.annotation.PathVariable;\r\nimport org.springframework.web.bind.annotation.RequestBody;\r\nimport org.springframework.web.bind.annotation.RequestMapping;\r\nimport org.springframework.web.bind.annotation.RequestParam;\r\nimport org.springframework.web.bind.annotation.RestController;\r\n\r\nimport com.qian.mall.product.entity.AttrEntity;\r\nimport com.qian.mall.product.service.AttrService;\r\nimport com.qian.common.utils.PageUtils;\r\nimport com.qian.common.utils.R;\r\n\r\n\r\n\r\n/**\r\n * 商品属性\r\n *\r\n * @author zhangqian\r\n * @email 694656210@qq.com\r\n * @date 2020-09-19 00:38:34\r\n */\r\n@RestController\r\n@RequestMapping(\"product/attr\")\r\npublic class AttrController {\r\n    @Autowired\r\n    private AttrService attrService;\r\n\r\n    /**\r\n     * 列表\r\n     */\r\n    @RequestMapping(\"/list\")\r\n    public R list(@RequestParam Map<String, Object> params){\r\n        PageUtils page = attrService.queryPage(params);\r\n\r\n        return R.ok().put(\"page\", page);\r\n    }\r\n\r\n\r\n    /**\r\n     * 信息\r\n     */\r\n    @RequestMapping(\"/info/{attrId}\")\r\n    public R info(@PathVariable(\"attrId\") Long attrId){\r\n\t\tAttrEntity attr = attrService.getById(attrId);\r\n\r\n        return R.ok().put(\"attr\", attr);\r\n    }\r\n\r\n    /**\r\n     * 保存\r\n     */\r\n    @RequestMapping(\"/save\")\r\n    public R save(@RequestBody AttrEntity attr){\r\n\t\tattrService.save(attr);\r\n\r\n        return R.ok();\r\n    }\r\n\r\n    /**\r\n     * 修改\r\n     */\r\n    @RequestMapping(\"/update\")\r\n    public R update(@RequestBody AttrEntity attr){\r\n\t\tattrService.updateById(attr);\r\n\r\n        return R.ok();\r\n    }\r\n\r\n    /**\r\n     * 删除\r\n     */\r\n    @RequestMapping(\"/delete\")\r\n    public R delete(@RequestBody Long[] attrIds){\r\n\t\tattrService.removeByIds(Arrays.asList(attrIds));\r\n\r\n        return R.ok();\r\n    }\r\n\r\n}\r\n
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- mall-product/src/main/java/com/qian/mall/product/controller/AttrController.java	(revision f241fe6052679b2ca840b831509dda5d0474560f)
++++ mall-product/src/main/java/com/qian/mall/product/controller/AttrController.java	(date 1602148166132)
+@@ -4,12 +4,9 @@
+ import java.util.Map;
+ 
+ 
++import com.qian.mall.product.vo.AttrVo;
+ import org.springframework.beans.factory.annotation.Autowired;
+-import org.springframework.web.bind.annotation.PathVariable;
+-import org.springframework.web.bind.annotation.RequestBody;
+-import org.springframework.web.bind.annotation.RequestMapping;
+-import org.springframework.web.bind.annotation.RequestParam;
+-import org.springframework.web.bind.annotation.RestController;
++import org.springframework.web.bind.annotation.*;
+ 
+ import com.qian.mall.product.entity.AttrEntity;
+ import com.qian.mall.product.service.AttrService;
+@@ -31,6 +28,13 @@
+     @Autowired
+     private AttrService attrService;
+ 
++    @GetMapping("/base/list/{catelogId}")
++    public R baseAttrList(@RequestParam Map<String, Object> params,
++                          @PathVariable("catelogId")Long catelogId){
++        PageUtils page=attrService.queryBaseAttrPage(params,catelogId);
++        return R.ok().put("page",page);
++    }
++
+     /**
+      * 列表
+      */
+@@ -56,8 +60,8 @@
+      * 保存
+      */
+     @RequestMapping("/save")
+-    public R save(@RequestBody AttrEntity attr){
+-		attrService.save(attr);
++    public R save(@RequestBody AttrVo attr){
++		attrService.saveAttr(attr);
+ 
+         return R.ok();
+     }
+Index: mall-product/src/main/java/com/qian/mall/product/service/AttrService.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+>package com.qian.mall.product.service;\r\n\r\nimport com.baomidou.mybatisplus.extension.service.IService;\r\nimport com.qian.common.utils.PageUtils;\r\nimport com.qian.mall.product.entity.AttrEntity;\r\n\r\nimport java.util.Map;\r\n\r\n/**\r\n * 商品属性\r\n *\r\n * @author zhangqian\r\n * @email 694656210@qq.com\r\n * @date 2020-09-19 00:38:34\r\n */\r\npublic interface AttrService extends IService<AttrEntity> {\r\n\r\n    PageUtils queryPage(Map<String, Object> params);\r\n}\r\n\r\n
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- mall-product/src/main/java/com/qian/mall/product/service/AttrService.java	(revision f241fe6052679b2ca840b831509dda5d0474560f)
++++ mall-product/src/main/java/com/qian/mall/product/service/AttrService.java	(date 1602146298964)
+@@ -3,6 +3,7 @@
+ import com.baomidou.mybatisplus.extension.service.IService;
+ import com.qian.common.utils.PageUtils;
+ import com.qian.mall.product.entity.AttrEntity;
++import com.qian.mall.product.vo.AttrVo;
+ 
+ import java.util.Map;
+ 
+@@ -16,5 +17,10 @@
+ public interface AttrService extends IService<AttrEntity> {
+ 
+     PageUtils queryPage(Map<String, Object> params);
++
++    void saveAttr(AttrVo attr);
++
++    PageUtils queryBaseAttrPage(Map<String, Object> params, Long catelogId);
++
+ }
+ 
+Index: mall-product/src/main/java/com/qian/mall/product/controller/AttrGroupController.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+>package com.qian.mall.product.controller;\r\n\r\nimport java.util.Arrays;\r\nimport java.util.Map;\r\n\r\n\r\nimport org.springframework.beans.factory.annotation.Autowired;\r\nimport org.springframework.web.bind.annotation.PathVariable;\r\nimport org.springframework.web.bind.annotation.RequestBody;\r\nimport org.springframework.web.bind.annotation.RequestMapping;\r\nimport org.springframework.web.bind.annotation.RequestParam;\r\nimport org.springframework.web.bind.annotation.RestController;\r\n\r\nimport com.qian.mall.product.entity.AttrGroupEntity;\r\nimport com.qian.mall.product.service.AttrGroupService;\r\nimport com.qian.common.utils.PageUtils;\r\nimport com.qian.common.utils.R;\r\n\r\n\r\n\r\n/**\r\n * 属性分组\r\n *\r\n * @author zhangqian\r\n * @email 694656210@qq.com\r\n * @date 2020-09-19 00:38:34\r\n */\r\n@RestController\r\n@RequestMapping(\"product/attrgroup\")\r\npublic class AttrGroupController {\r\n    @Autowired\r\n    private AttrGroupService attrGroupService;\r\n\r\n    /**\r\n     * 列表\r\n     */\r\n    @RequestMapping(\"/list\")\r\n    public R list(@RequestParam Map<String, Object> params){\r\n        PageUtils page = attrGroupService.queryPage(params);\r\n\r\n        return R.ok().put(\"page\", page);\r\n    }\r\n\r\n\r\n    /**\r\n     * 信息\r\n     */\r\n    @RequestMapping(\"/info/{attrGroupId}\")\r\n    public R info(@PathVariable(\"attrGroupId\") Long attrGroupId){\r\n\t\tAttrGroupEntity attrGroup = attrGroupService.getById(attrGroupId);\r\n\r\n        return R.ok().put(\"attrGroup\", attrGroup);\r\n    }\r\n\r\n    /**\r\n     * 保存\r\n     */\r\n    @RequestMapping(\"/save\")\r\n    public R save(@RequestBody AttrGroupEntity attrGroup){\r\n\t\tattrGroupService.save(attrGroup);\r\n\r\n        return R.ok();\r\n    }\r\n\r\n    /**\r\n     * 修改\r\n     */\r\n    @RequestMapping(\"/update\")\r\n    public R update(@RequestBody AttrGroupEntity attrGroup){\r\n\t\tattrGroupService.updateById(attrGroup);\r\n\r\n        return R.ok();\r\n    }\r\n\r\n    /**\r\n     * 删除\r\n     */\r\n    @RequestMapping(\"/delete\")\r\n    public R delete(@RequestBody Long[] attrGroupIds){\r\n\t\tattrGroupService.removeByIds(Arrays.asList(attrGroupIds));\r\n\r\n        return R.ok();\r\n    }\r\n\r\n}\r\n
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- mall-product/src/main/java/com/qian/mall/product/controller/AttrGroupController.java	(revision f241fe6052679b2ca840b831509dda5d0474560f)
++++ mall-product/src/main/java/com/qian/mall/product/controller/AttrGroupController.java	(date 1602133491251)
+@@ -4,6 +4,7 @@
+ import java.util.Map;
+ 
+ 
++import com.qian.mall.product.service.CategoryService;
+ import org.springframework.beans.factory.annotation.Autowired;
+ import org.springframework.web.bind.annotation.PathVariable;
+ import org.springframework.web.bind.annotation.RequestBody;
+@@ -16,6 +17,7 @@
+ import com.qian.common.utils.PageUtils;
+ import com.qian.common.utils.R;
+ 
++import javax.annotation.Resource;
+ 
+ 
+ /**
+@@ -31,13 +33,17 @@
+     @Autowired
+     private AttrGroupService attrGroupService;
+ 
++    @Resource
++    CategoryService categoryService;
+     /**
+      * 列表
+      */
+-    @RequestMapping("/list")
+-    public R list(@RequestParam Map<String, Object> params){
+-        PageUtils page = attrGroupService.queryPage(params);
+-
++    @RequestMapping("/list/{catelogId}")
++    //@RequiresPermissions("product:attrgroup:list")
++    public R list(@RequestParam Map<String, Object> params,
++                  @PathVariable("catelogId") Long catelogId){
++//        PageUtils page = attrGroupService.queryPage(params);
++        PageUtils page = attrGroupService.queryPage(params,catelogId);
+         return R.ok().put("page", page);
+     }
+ 
+@@ -48,7 +54,9 @@
+     @RequestMapping("/info/{attrGroupId}")
+     public R info(@PathVariable("attrGroupId") Long attrGroupId){
+ 		AttrGroupEntity attrGroup = attrGroupService.getById(attrGroupId);
+-
++        Long catelogId = attrGroup.getCatelogId();
++      Long[] path = categoryService.findCatelogPath(catelogId);
++      attrGroup.setCatelogPath(path);
+         return R.ok().put("attrGroup", attrGroup);
+     }
+ 
+Index: mall-product/src/main/java/com/qian/mall/product/service/impl/AttrServiceImpl.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+>package com.qian.mall.product.service.impl;\r\n\r\nimport org.springframework.stereotype.Service;\r\nimport java.util.Map;\r\nimport com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;\r\nimport com.baomidou.mybatisplus.core.metadata.IPage;\r\nimport com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;\r\nimport com.qian.common.utils.PageUtils;\r\nimport com.qian.common.utils.Query;\r\n\r\nimport com.qian.mall.product.dao.AttrDao;\r\nimport com.qian.mall.product.entity.AttrEntity;\r\nimport com.qian.mall.product.service.AttrService;\r\n\r\n\r\n@Service(\"attrService\")\r\npublic class AttrServiceImpl extends ServiceImpl<AttrDao, AttrEntity> implements AttrService {\r\n\r\n    @Override\r\n    public PageUtils queryPage(Map<String, Object> params) {\r\n        IPage<AttrEntity> page = this.page(\r\n                new Query<AttrEntity>().getPage(params),\r\n                new QueryWrapper<AttrEntity>()\r\n        );\r\n\r\n        return new PageUtils(page);\r\n    }\r\n\r\n}
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- mall-product/src/main/java/com/qian/mall/product/service/impl/AttrServiceImpl.java	(revision f241fe6052679b2ca840b831509dda5d0474560f)
++++ mall-product/src/main/java/com/qian/mall/product/service/impl/AttrServiceImpl.java	(date 1602148916966)
+@@ -1,7 +1,15 @@
+ package com.qian.mall.product.service.impl;
+ 
++import com.qian.mall.product.dao.AttrAttrgroupRelationDao;
++import com.qian.mall.product.entity.AttrAttrgroupRelationEntity;
++import com.qian.mall.product.vo.AttrVo;
++import org.apache.commons.lang3.StringUtils;
++import org.springframework.beans.BeanUtils;
++import org.springframework.beans.factory.annotation.Autowired;
+ import org.springframework.stereotype.Service;
++
+ import java.util.Map;
++
+ import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+ import com.baomidou.mybatisplus.core.metadata.IPage;
+ import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+@@ -11,11 +19,17 @@
+ import com.qian.mall.product.dao.AttrDao;
+ import com.qian.mall.product.entity.AttrEntity;
+ import com.qian.mall.product.service.AttrService;
++import org.springframework.transaction.annotation.Transactional;
++
++import javax.annotation.Resource;
+ 
+ 
+ @Service("attrService")
+ public class AttrServiceImpl extends ServiceImpl<AttrDao, AttrEntity> implements AttrService {
+ 
++    @Resource
++    AttrAttrgroupRelationDao relationDao;
++
+     @Override
+     public PageUtils queryPage(Map<String, Object> params) {
+         IPage<AttrEntity> page = this.page(
+@@ -26,4 +40,33 @@
+         return new PageUtils(page);
+     }
+ 
++    @Transactional
++    @Override
++    public void saveAttr(AttrVo attr) {
++        AttrEntity attrEntity = new AttrEntity();
++        BeanUtils.copyProperties(attr, attrEntity);
++        //保存基本数据
++        this.save(attrEntity);
++        //保存关联关系
++        AttrAttrgroupRelationEntity relationEntity = new AttrAttrgroupRelationEntity();
++        relationEntity.setAttrGroupId(attr.getAttrGroupId());
++        relationEntity.setAttrId(attrEntity.getAttrId());
++        relationDao.insert(relationEntity);
++    }
++
++    @Override
++    public PageUtils queryBaseAttrPage(Map<String, Object> params, Long catelogId) {
++        QueryWrapper<AttrEntity> queryWrapper = new QueryWrapper<>();
++
++        String key = (String) params.get("key");
++        if (!StringUtils.isEmpty(key)) {
++            queryWrapper.and((wrapper) -> {
++                wrapper.eq("attr_id", key).or().like("attr_name", key);
++            });
++        }
++        IPage<AttrEntity> page = this.page(new Query<AttrEntity>().getPage(params),
++                queryWrapper);
++        return new PageUtils(page);
++    }
++
+ }
+\ No newline at end of file
+Index: renren-fast/src/main/java/io/renren/RenrenApplication.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+>/**\r\n * Copyright (c) 2016-2019 人人开源 All rights reserved.\r\n *\r\n * https://www.renren.io\r\n *\r\n * 版权所有，侵权必究！\r\n */\r\n\r\npackage io.renren;\r\n\r\nimport org.springframework.boot.SpringApplication;\r\nimport org.springframework.boot.autoconfigure.SpringBootApplication;\r\n\r\n\r\n@SpringBootApplication\r\npublic class RenrenApplication {\r\n\r\n\tpublic static void main(String[] args) {\r\n\t\tSpringApplication.run(RenrenApplication.class, args);\r\n\t}\r\n\r\n}
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- renren-fast/src/main/java/io/renren/RenrenApplication.java	(revision f241fe6052679b2ca840b831509dda5d0474560f)
++++ renren-fast/src/main/java/io/renren/RenrenApplication.java	(date 1600679233200)
+@@ -10,8 +10,9 @@
+ 
+ import org.springframework.boot.SpringApplication;
+ import org.springframework.boot.autoconfigure.SpringBootApplication;
++import org.springframework.cloud.client.discovery.EnableDiscoveryClient;
+ 
+-
++@EnableDiscoveryClient
+ @SpringBootApplication
+ public class RenrenApplication {
+ 
+Index: mall-third-party/src/main/java/com/qian/thirdparty/controller/OssController.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- mall-third-party/src/main/java/com/qian/thirdparty/controller/OssController.java	(date 1601701526832)
++++ mall-third-party/src/main/java/com/qian/thirdparty/controller/OssController.java	(date 1601701526832)
+@@ -0,0 +1,83 @@
++package com.qian.thirdparty.controller;
++
++import com.alibaba.fastjson.JSONObject;
++import com.aliyun.oss.OSS;
++import com.aliyun.oss.OSSClientBuilder;
++import com.aliyun.oss.common.utils.BinaryUtil;
++import com.aliyun.oss.model.MatchMode;
++import com.aliyun.oss.model.PolicyConditions;
++import com.qian.common.utils.R;
++import org.springframework.beans.factory.annotation.Autowired;
++import org.springframework.beans.factory.annotation.Value;
++import org.springframework.web.bind.annotation.PostMapping;
++import org.springframework.web.bind.annotation.RequestMapping;
++import org.springframework.web.bind.annotation.RestController;
++
++import javax.annotation.Resource;
++import java.text.SimpleDateFormat;
++import java.util.Date;
++import java.util.LinkedHashMap;
++import java.util.Map;
++
++@RestController
++public class OssController {
++
++    @Resource
++    OSS ossClient;
++    @Value("${spring.cloud.alicloud.access-key}")
++    private String accessId;
++    @Value("${spring.cloud.alicloud.secret-key}")
++    private String accessKey;
++    @Value("${spring.cloud.alicloud.oss.endpoint}")
++    private String endpoint;
++    @Value("${spring.cloud.alicloud.oss.bucket}")
++    private String bucket;
++
++    @RequestMapping(value = "/oss/policy")
++    public R policy(){
++
++
++        String host = "https://" + bucket + "." + endpoint; // host的格式为 bucketname.endpoint
++        // callbackUrl为 上传回调服务器的URL，请将下面的IP和Port配置为您自己的真实信息。
++//        String callbackUrl = "http://88.88.88.88:8888";
++        String format = new SimpleDateFormat("yyyy-MM-dd").format(new Date());
++        String dir = format; // 用户上传文件时指定的前缀。
++        Map<String, String> respMap=null;
++        // 创建OSSClient实例。
++        ossClient = new OSSClientBuilder().build(endpoint, accessId, accessKey);
++        try {
++            long expireTime = 30;
++            long expireEndTime = System.currentTimeMillis() + expireTime * 1000;
++            Date expiration = new Date(expireEndTime);
++            // PostObject请求最大可支持的文件大小为5 GB，即CONTENT_LENGTH_RANGE为5*1024*1024*1024。
++            PolicyConditions policyConds = new PolicyConditions();
++            policyConds.addConditionItem(PolicyConditions.COND_CONTENT_LENGTH_RANGE, 0, 1048576000);
++            policyConds.addConditionItem(MatchMode.StartWith, PolicyConditions.COND_KEY, dir);
++
++            String postPolicy = ossClient.generatePostPolicy(expiration, policyConds);
++            byte[] binaryData = postPolicy.getBytes("utf-8");
++            String encodedPolicy = BinaryUtil.toBase64String(binaryData);
++            String postSignature = ossClient.calculatePostSignature(postPolicy);
++            respMap = new LinkedHashMap<String, String>();
++            respMap.put("accessid", accessId);
++            respMap.put("policy", encodedPolicy);
++            respMap.put("signature", postSignature);
++            respMap.put("dir", dir);
++            respMap.put("host", host);
++            respMap.put("expire", String.valueOf(expireEndTime / 1000));
++            // respMap.put("expire", formatISO8601Date(expiration));
++
++
++        } catch (Exception e) {
++            // Assert.fail(e.getMessage());
++            System.out.println(e.getMessage());
++        } finally {
++            ossClient.shutdown();
++
++        }
++        return R.ok().put("data",respMap);
++
++
++
++    }
++}
+Index: mall-product/src/main/java/com/qian/mall/product/MallProductApplication.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+>package com.qian.mall.product;\r\n\r\nimport org.springframework.boot.SpringApplication;\r\nimport org.springframework.boot.autoconfigure.SpringBootApplication;\r\n\r\n@SpringBootApplication\r\npublic class MallProductApplication {\r\n\r\n    public static void main(String[] args) {\r\n        SpringApplication.run(MallProductApplication.class, args);\r\n    }\r\n\r\n}\r\n
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- mall-product/src/main/java/com/qian/mall/product/MallProductApplication.java	(revision f241fe6052679b2ca840b831509dda5d0474560f)
++++ mall-product/src/main/java/com/qian/mall/product/MallProductApplication.java	(date 1600737456324)
+@@ -2,7 +2,9 @@
+ 
+ import org.springframework.boot.SpringApplication;
+ import org.springframework.boot.autoconfigure.SpringBootApplication;
++import org.springframework.cloud.client.discovery.EnableDiscoveryClient;
+ 
++@EnableDiscoveryClient
+ @SpringBootApplication
+ public class MallProductApplication {
+ 
+Index: mall-product/src/main/resources/application.yml
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+>server:\r\n  port: 10000\r\n\r\n# mysql\r\nspring:\r\n  datasource:\r\n    type: com.alibaba.druid.pool.DruidDataSource\r\n    driverClassName: com.mysql.cj.jdbc.Driver\r\n    url: jdbc:mysql://localhost:3306/qian_pms?useUnicode=true&characterEncoding=UTF-8&useSSL=false&serverTimezone=Asia/Shanghai\r\n    username: root\r\n    password: zhangqian\r\nmybatis-plus:\r\n  mapper-locations: classpath:/mapper/**/*.xml\r\n  global-config:\r\n    db-config:\r\n      id-type: auto
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- mall-product/src/main/resources/application.yml	(revision f241fe6052679b2ca840b831509dda5d0474560f)
++++ mall-product/src/main/resources/application.yml	(date 1602086768541)
+@@ -1,16 +1,33 @@
+ server:
+-  port: 10000
++  port: 19000
+ 
+ # mysql
+ spring:
+   datasource:
+     type: com.alibaba.druid.pool.DruidDataSource
+     driverClassName: com.mysql.cj.jdbc.Driver
+-    url: jdbc:mysql://localhost:3306/qian_pms?useUnicode=true&characterEncoding=UTF-8&useSSL=false&serverTimezone=Asia/Shanghai
++    url: jdbc:mysql://localhost:3306/qian_pms?useUnicode=true&characterEncoding=UTF-8&useSSL=false&serverTimezone=Asia/Shanghai&allowPublicKeyRetrieval=true
+     username: root
+     password: zhangqian
++  cloud:
++    nacos:
++      discovery:
++        server-addr: 127.0.0.1:8848
++    alicloud:
++      access-key: LTAI4GEPT8NWiyhQ3XHtbWRG
++      secret-key: o7gDXT6RfY8H9udojWZviW4ySGYbaI
++      oss:
++        endpoint: oss-cn-zhangjiakou.aliyuncs.com
++        bucket: qian-mall
++  application:
++    name: mall-product
+ mybatis-plus:
+   mapper-locations: classpath:/mapper/**/*.xml
+   global-config:
+     db-config:
+-      id-type: auto
+\ No newline at end of file
++      id-type: auto
++      logic-delete-field: 1
++      logic-not-delete-value: 0
++logging:
++  level:
++    com.qian.mall: debug
+\ No newline at end of file
+Index: mall-product/src/main/java/com/qian/mall/product/service/AttrGroupService.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+>package com.qian.mall.product.service;\r\n\r\nimport com.baomidou.mybatisplus.extension.service.IService;\r\nimport com.qian.common.utils.PageUtils;\r\nimport com.qian.mall.product.entity.AttrGroupEntity;\r\n\r\nimport java.util.Map;\r\n\r\n/**\r\n * 属性分组\r\n *\r\n * @author zhangqian\r\n * @email 694656210@qq.com\r\n * @date 2020-09-19 00:38:34\r\n */\r\npublic interface AttrGroupService extends IService<AttrGroupEntity> {\r\n\r\n    PageUtils queryPage(Map<String, Object> params);\r\n}\r\n\r\n
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- mall-product/src/main/java/com/qian/mall/product/service/AttrGroupService.java	(revision f241fe6052679b2ca840b831509dda5d0474560f)
++++ mall-product/src/main/java/com/qian/mall/product/service/AttrGroupService.java	(date 1602084975333)
+@@ -16,5 +16,7 @@
+ public interface AttrGroupService extends IService<AttrGroupEntity> {
+ 
+     PageUtils queryPage(Map<String, Object> params);
++
++    PageUtils queryPage(Map<String, Object> params, Long catelogId);
+ }
+ 
+Index: mall-product/src/main/resources/mapper/product/CategoryBrandRelationDao.xml
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+><?xml version=\"1.0\" encoding=\"UTF-8\"?>\r\n<!DOCTYPE mapper PUBLIC \"-//mybatis.org//DTD Mapper 3.0//EN\" \"http://mybatis.org/dtd/mybatis-3-mapper.dtd\">\r\n\r\n<mapper namespace=\"com.qian.mall.product.dao.CategoryBrandRelationDao\">\r\n\r\n\t<!-- 可根据自己的需求，是否要使用 -->\r\n    <resultMap type=\"com.qian.mall.product.entity.CategoryBrandRelationEntity\" id=\"categoryBrandRelationMap\">\r\n        <result property=\"id\" column=\"id\"/>\r\n        <result property=\"brandId\" column=\"brand_id\"/>\r\n        <result property=\"catelogId\" column=\"catelog_id\"/>\r\n        <result property=\"brandName\" column=\"brand_name\"/>\r\n        <result property=\"catelogName\" column=\"catelog_name\"/>\r\n    </resultMap>\r\n\r\n\r\n</mapper>
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- mall-product/src/main/resources/mapper/product/CategoryBrandRelationDao.xml	(revision f241fe6052679b2ca840b831509dda5d0474560f)
++++ mall-product/src/main/resources/mapper/product/CategoryBrandRelationDao.xml	(date 1602138734476)
+@@ -11,6 +11,9 @@
+         <result property="brandName" column="brand_name"/>
+         <result property="catelogName" column="catelog_name"/>
+     </resultMap>
++    <update id="updateCategory">
++        UPDATE pms_category_brand_relation SET catelog _name =#{name} WHERE catelog_id=#{catId}
++    </update>
+ 
+ 
+ </mapper>
+\ No newline at end of file
+Index: mall-third-party/src/main/resources/application.yml
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- mall-third-party/src/main/resources/application.yml	(date 1601647079930)
++++ mall-third-party/src/main/resources/application.yml	(date 1601647079930)
+@@ -0,0 +1,14 @@
++spring:
++  cloud:
++    nacos:
++      server-addr: 127.0.0.1:8848
++    alicloud:
++      access-key: LTAI4GEPT8NWiyhQ3XHtbWRG
++      secret-key: o7gDXT6RfY8H9udojWZviW4ySGYbaI
++      oss:
++        endpoint: oss-cn-zhangjiakou.aliyuncs.com
++        bucket: qian-mall
++  application:
++    name: mall-third-party
++server:
++  port: 30001
+\ No newline at end of file
+Index: mall-product/src/main/java/com/qian/mall/product/controller/BrandController.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+>package com.qian.mall.product.controller;\r\n\r\nimport java.util.Arrays;\r\nimport java.util.Map;\r\n\r\n\r\nimport org.springframework.beans.factory.annotation.Autowired;\r\nimport org.springframework.web.bind.annotation.PathVariable;\r\nimport org.springframework.web.bind.annotation.RequestBody;\r\nimport org.springframework.web.bind.annotation.RequestMapping;\r\nimport org.springframework.web.bind.annotation.RequestParam;\r\nimport org.springframework.web.bind.annotation.RestController;\r\n\r\nimport com.qian.mall.product.entity.BrandEntity;\r\nimport com.qian.mall.product.service.BrandService;\r\nimport com.qian.common.utils.PageUtils;\r\nimport com.qian.common.utils.R;\r\n\r\n\r\n\r\n/**\r\n * 品牌\r\n *\r\n * @author zhangqian\r\n * @email 694656210@qq.com\r\n * @date 2020-09-19 00:38:34\r\n */\r\n@RestController\r\n@RequestMapping(\"product/brand\")\r\npublic class BrandController {\r\n    @Autowired\r\n    private BrandService brandService;\r\n\r\n    /**\r\n     * 列表\r\n     */\r\n    @RequestMapping(\"/list\")\r\n    public R list(@RequestParam Map<String, Object> params){\r\n        PageUtils page = brandService.queryPage(params);\r\n\r\n        return R.ok().put(\"page\", page);\r\n    }\r\n\r\n\r\n    /**\r\n     * 信息\r\n     */\r\n    @RequestMapping(\"/info/{brandId}\")\r\n    public R info(@PathVariable(\"brandId\") Long brandId){\r\n\t\tBrandEntity brand = brandService.getById(brandId);\r\n\r\n        return R.ok().put(\"brand\", brand);\r\n    }\r\n\r\n    /**\r\n     * 保存\r\n     */\r\n    @RequestMapping(\"/save\")\r\n    public R save(@RequestBody BrandEntity brand){\r\n\t\tbrandService.save(brand);\r\n\r\n        return R.ok();\r\n    }\r\n\r\n    /**\r\n     * 修改\r\n     */\r\n    @RequestMapping(\"/update\")\r\n    public R update(@RequestBody BrandEntity brand){\r\n\t\tbrandService.updateById(brand);\r\n\r\n        return R.ok();\r\n    }\r\n\r\n    /**\r\n     * 删除\r\n     */\r\n    @RequestMapping(\"/delete\")\r\n    public R delete(@RequestBody Long[] brandIds){\r\n\t\tbrandService.removeByIds(Arrays.asList(brandIds));\r\n\r\n        return R.ok();\r\n    }\r\n\r\n}\r\n
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- mall-product/src/main/java/com/qian/mall/product/controller/BrandController.java	(revision f241fe6052679b2ca840b831509dda5d0474560f)
++++ mall-product/src/main/java/com/qian/mall/product/controller/BrandController.java	(date 1602137793609)
+@@ -1,10 +1,16 @@
+ package com.qian.mall.product.controller;
+ 
+ import java.util.Arrays;
++import java.util.HashMap;
+ import java.util.Map;
+ 
+ 
++import com.qian.common.valid.AddGroup;
++import com.qian.common.valid.UpdateStatusGroup;
+ import org.springframework.beans.factory.annotation.Autowired;
++import org.springframework.boot.context.properties.bind.BindResult;
++import org.springframework.validation.BindingResult;
++import org.springframework.validation.annotation.Validated;
+ import org.springframework.web.bind.annotation.PathVariable;
+ import org.springframework.web.bind.annotation.RequestBody;
+ import org.springframework.web.bind.annotation.RequestMapping;
+@@ -16,6 +22,7 @@
+ import com.qian.common.utils.PageUtils;
+ import com.qian.common.utils.R;
+ 
++import javax.validation.Valid;
+ 
+ 
+ /**
+@@ -35,9 +42,8 @@
+      * 列表
+      */
+     @RequestMapping("/list")
+-    public R list(@RequestParam Map<String, Object> params){
++    public R list(@RequestParam Map<String, Object> params) {
+         PageUtils page = brandService.queryPage(params);
+-
+         return R.ok().put("page", page);
+     }
+ 
+@@ -46,8 +52,8 @@
+      * 信息
+      */
+     @RequestMapping("/info/{brandId}")
+-    public R info(@PathVariable("brandId") Long brandId){
+-		BrandEntity brand = brandService.getById(brandId);
++    public R info(@PathVariable("brandId") Long brandId) {
++        BrandEntity brand = brandService.getById(brandId);
+ 
+         return R.ok().put("brand", brand);
+     }
+@@ -56,8 +62,9 @@
+      * 保存
+      */
+     @RequestMapping("/save")
+-    public R save(@RequestBody BrandEntity brand){
+-		brandService.save(brand);
++    public R save(@Validated(value = AddGroup.class) @RequestBody BrandEntity brand) {
++
++        brandService.save(brand);
+ 
+         return R.ok();
+     }
+@@ -66,18 +73,29 @@
+      * 修改
+      */
+     @RequestMapping("/update")
+-    public R update(@RequestBody BrandEntity brand){
+-		brandService.updateById(brand);
++    public R update(@RequestBody BrandEntity brand) {
++        brandService.updateDetail(brand);
++
++        return R.ok();
++    }
++
++
++    /**
++     * 修改状态
++     */
++    @RequestMapping("/update/status")
++    //@RequiresPermissions("product:brand:update")
++    public R updateStatus(@Validated(UpdateStatusGroup.class) @RequestBody BrandEntity brand){
++        brandService.updateById(brand);
+ 
+         return R.ok();
+     }
+-
+     /**
+      * 删除
+      */
+     @RequestMapping("/delete")
+-    public R delete(@RequestBody Long[] brandIds){
+-		brandService.removeByIds(Arrays.asList(brandIds));
++    public R delete(@RequestBody Long[] brandIds) {
++        brandService.removeByIds(Arrays.asList(brandIds));
+ 
+         return R.ok();
+     }
+Index: mall-product/src/main/java/com/qian/mall/product/controller/CategoryBrandRelationController.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+>package com.qian.mall.product.controller;\r\n\r\nimport java.util.Arrays;\r\nimport java.util.Map;\r\n\r\n\r\nimport org.springframework.beans.factory.annotation.Autowired;\r\nimport org.springframework.web.bind.annotation.PathVariable;\r\nimport org.springframework.web.bind.annotation.RequestBody;\r\nimport org.springframework.web.bind.annotation.RequestMapping;\r\nimport org.springframework.web.bind.annotation.RequestParam;\r\nimport org.springframework.web.bind.annotation.RestController;\r\n\r\nimport com.qian.mall.product.entity.CategoryBrandRelationEntity;\r\nimport com.qian.mall.product.service.CategoryBrandRelationService;\r\nimport com.qian.common.utils.PageUtils;\r\nimport com.qian.common.utils.R;\r\n\r\n\r\n\r\n/**\r\n * 品牌分类关联\r\n *\r\n * @author zhangqian\r\n * @email 694656210@qq.com\r\n * @date 2020-09-19 00:38:34\r\n */\r\n@RestController\r\n@RequestMapping(\"product/categorybrandrelation\")\r\npublic class CategoryBrandRelationController {\r\n    @Autowired\r\n    private CategoryBrandRelationService categoryBrandRelationService;\r\n\r\n    /**\r\n     * 列表\r\n     */\r\n    @RequestMapping(\"/list\")\r\n    public R list(@RequestParam Map<String, Object> params){\r\n        PageUtils page = categoryBrandRelationService.queryPage(params);\r\n\r\n        return R.ok().put(\"page\", page);\r\n    }\r\n\r\n\r\n    /**\r\n     * 信息\r\n     */\r\n    @RequestMapping(\"/info/{id}\")\r\n    public R info(@PathVariable(\"id\") Long id){\r\n\t\tCategoryBrandRelationEntity categoryBrandRelation = categoryBrandRelationService.getById(id);\r\n\r\n        return R.ok().put(\"categoryBrandRelation\", categoryBrandRelation);\r\n    }\r\n\r\n    /**\r\n     * 保存\r\n     */\r\n    @RequestMapping(\"/save\")\r\n    public R save(@RequestBody CategoryBrandRelationEntity categoryBrandRelation){\r\n\t\tcategoryBrandRelationService.save(categoryBrandRelation);\r\n\r\n        return R.ok();\r\n    }\r\n\r\n    /**\r\n     * 修改\r\n     */\r\n    @RequestMapping(\"/update\")\r\n    public R update(@RequestBody CategoryBrandRelationEntity categoryBrandRelation){\r\n\t\tcategoryBrandRelationService.updateById(categoryBrandRelation);\r\n\r\n        return R.ok();\r\n    }\r\n\r\n    /**\r\n     * 删除\r\n     */\r\n    @RequestMapping(\"/delete\")\r\n    public R delete(@RequestBody Long[] ids){\r\n\t\tcategoryBrandRelationService.removeByIds(Arrays.asList(ids));\r\n\r\n        return R.ok();\r\n    }\r\n\r\n}\r\n
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- mall-product/src/main/java/com/qian/mall/product/controller/CategoryBrandRelationController.java	(revision f241fe6052679b2ca840b831509dda5d0474560f)
++++ mall-product/src/main/java/com/qian/mall/product/controller/CategoryBrandRelationController.java	(date 1602137349548)
+@@ -1,15 +1,13 @@
+ package com.qian.mall.product.controller;
+ 
+ import java.util.Arrays;
++import java.util.List;
+ import java.util.Map;
+ 
+ 
++import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+ import org.springframework.beans.factory.annotation.Autowired;
+-import org.springframework.web.bind.annotation.PathVariable;
+-import org.springframework.web.bind.annotation.RequestBody;
+-import org.springframework.web.bind.annotation.RequestMapping;
+-import org.springframework.web.bind.annotation.RequestParam;
+-import org.springframework.web.bind.annotation.RestController;
++import org.springframework.web.bind.annotation.*;
+ 
+ import com.qian.mall.product.entity.CategoryBrandRelationEntity;
+ import com.qian.mall.product.service.CategoryBrandRelationService;
+@@ -17,7 +15,6 @@
+ import com.qian.common.utils.R;
+ 
+ 
+-
+ /**
+  * 品牌分类关联
+  *
+@@ -31,11 +28,22 @@
+     @Autowired
+     private CategoryBrandRelationService categoryBrandRelationService;
+ 
++
++    /**
++     * 列表
++     */
++    @GetMapping("/catelog/list")
++    public R cateloglist(@RequestParam("brandId") Long brandId) {
++        List<CategoryBrandRelationEntity> data = categoryBrandRelationService.list(new QueryWrapper<CategoryBrandRelationEntity>().
++                eq("brand_id", brandId));
++        return R.ok().put("data", data);
++    }
++
+     /**
+      * 列表
+      */
+     @RequestMapping("/list")
+-    public R list(@RequestParam Map<String, Object> params){
++    public R list(@RequestParam Map<String, Object> params) {
+         PageUtils page = categoryBrandRelationService.queryPage(params);
+ 
+         return R.ok().put("page", page);
+@@ -46,8 +54,8 @@
+      * 信息
+      */
+     @RequestMapping("/info/{id}")
+-    public R info(@PathVariable("id") Long id){
+-		CategoryBrandRelationEntity categoryBrandRelation = categoryBrandRelationService.getById(id);
++    public R info(@PathVariable("id") Long id) {
++        CategoryBrandRelationEntity categoryBrandRelation = categoryBrandRelationService.getById(id);
+ 
+         return R.ok().put("categoryBrandRelation", categoryBrandRelation);
+     }
+@@ -56,8 +64,8 @@
+      * 保存
+      */
+     @RequestMapping("/save")
+-    public R save(@RequestBody CategoryBrandRelationEntity categoryBrandRelation){
+-		categoryBrandRelationService.save(categoryBrandRelation);
++    public R save(@RequestBody CategoryBrandRelationEntity categoryBrandRelation) {
++        categoryBrandRelationService.saveDetail(categoryBrandRelation);
+ 
+         return R.ok();
+     }
+@@ -66,8 +74,8 @@
+      * 修改
+      */
+     @RequestMapping("/update")
+-    public R update(@RequestBody CategoryBrandRelationEntity categoryBrandRelation){
+-		categoryBrandRelationService.updateById(categoryBrandRelation);
++    public R update(@RequestBody CategoryBrandRelationEntity categoryBrandRelation) {
++        categoryBrandRelationService.updateById(categoryBrandRelation);
+ 
+         return R.ok();
+     }
+@@ -76,8 +84,8 @@
+      * 删除
+      */
+     @RequestMapping("/delete")
+-    public R delete(@RequestBody Long[] ids){
+-		categoryBrandRelationService.removeByIds(Arrays.asList(ids));
++    public R delete(@RequestBody Long[] ids) {
++        categoryBrandRelationService.removeByIds(Arrays.asList(ids));
+ 
+         return R.ok();
+     }
+Index: mall-product/src/main/java/com/qian/mall/product/controller/CategoryController.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+>package com.qian.mall.product.controller;\r\n\r\nimport java.util.Arrays;\r\nimport java.util.Map;\r\n\r\n\r\nimport org.springframework.beans.factory.annotation.Autowired;\r\nimport org.springframework.web.bind.annotation.PathVariable;\r\nimport org.springframework.web.bind.annotation.RequestBody;\r\nimport org.springframework.web.bind.annotation.RequestMapping;\r\nimport org.springframework.web.bind.annotation.RequestParam;\r\nimport org.springframework.web.bind.annotation.RestController;\r\n\r\nimport com.qian.mall.product.entity.CategoryEntity;\r\nimport com.qian.mall.product.service.CategoryService;\r\nimport com.qian.common.utils.PageUtils;\r\nimport com.qian.common.utils.R;\r\n\r\n\r\n\r\n/**\r\n * 商品三级分类\r\n *\r\n * @author zhangqian\r\n * @email 694656210@qq.com\r\n * @date 2020-09-19 00:38:34\r\n */\r\n@RestController\r\n@RequestMapping(\"product/category\")\r\npublic class CategoryController {\r\n    @Autowired\r\n    private CategoryService categoryService;\r\n\r\n    /**\r\n     * 列表\r\n     */\r\n    @RequestMapping(\"/list\")\r\n    public R list(@RequestParam Map<String, Object> params){\r\n        PageUtils page = categoryService.queryPage(params);\r\n\r\n        return R.ok().put(\"page\", page);\r\n    }\r\n\r\n\r\n    /**\r\n     * 信息\r\n     */\r\n    @RequestMapping(\"/info/{catId}\")\r\n    public R info(@PathVariable(\"catId\") Long catId){\r\n\t\tCategoryEntity category = categoryService.getById(catId);\r\n\r\n        return R.ok().put(\"category\", category);\r\n    }\r\n\r\n    /**\r\n     * 保存\r\n     */\r\n    @RequestMapping(\"/save\")\r\n    public R save(@RequestBody CategoryEntity category){\r\n\t\tcategoryService.save(category);\r\n\r\n        return R.ok();\r\n    }\r\n\r\n    /**\r\n     * 修改\r\n     */\r\n    @RequestMapping(\"/update\")\r\n    public R update(@RequestBody CategoryEntity category){\r\n\t\tcategoryService.updateById(category);\r\n\r\n        return R.ok();\r\n    }\r\n\r\n    /**\r\n     * 删除\r\n     */\r\n    @RequestMapping(\"/delete\")\r\n    public R delete(@RequestBody Long[] catIds){\r\n\t\tcategoryService.removeByIds(Arrays.asList(catIds));\r\n\r\n        return R.ok();\r\n    }\r\n\r\n}\r\n
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- mall-product/src/main/java/com/qian/mall/product/controller/CategoryController.java	(revision f241fe6052679b2ca840b831509dda5d0474560f)
++++ mall-product/src/main/java/com/qian/mall/product/controller/CategoryController.java	(date 1602138373145)
+@@ -1,9 +1,11 @@
+ package com.qian.mall.product.controller;
+ 
+ import java.util.Arrays;
++import java.util.List;
+ import java.util.Map;
+ 
+ 
++import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+ import org.springframework.beans.factory.annotation.Autowired;
+ import org.springframework.web.bind.annotation.PathVariable;
+ import org.springframework.web.bind.annotation.RequestBody;
+@@ -17,7 +19,6 @@
+ import com.qian.common.utils.R;
+ 
+ 
+-
+ /**
+  * 商品三级分类
+  *
+@@ -32,13 +33,14 @@
+     private CategoryService categoryService;
+ 
+     /**
+-     * 列表
++     * 查出所有的分离一级自分类以树形结构组装起来
+      */
+-    @RequestMapping("/list")
+-    public R list(@RequestParam Map<String, Object> params){
+-        PageUtils page = categoryService.queryPage(params);
++    @RequestMapping("/list/tree")
++    public R list() {
++        List<CategoryEntity> list = categoryService.listWithTree();
++        return R.ok().put("data", list);
+ 
+-        return R.ok().put("page", page);
++
+     }
+ 
+ 
+@@ -46,28 +48,37 @@
+      * 信息
+      */
+     @RequestMapping("/info/{catId}")
+-    public R info(@PathVariable("catId") Long catId){
+-		CategoryEntity category = categoryService.getById(catId);
+-
+-        return R.ok().put("category", category);
++    public R info(@PathVariable("catId") Long catId) {
++        CategoryEntity category = categoryService.getById(catId);
++        return R.ok().put("data", category);
+     }
+ 
+     /**
+      * 保存
+      */
+     @RequestMapping("/save")
+-    public R save(@RequestBody CategoryEntity category){
+-		categoryService.save(category);
++    public R save(@RequestBody CategoryEntity category) {
++        categoryService.save(category);
+ 
+         return R.ok();
+     }
+ 
++    /**
++     * 批量修改
++     */
++    @RequestMapping("/update/sort")
++    public R updateSort(@RequestBody CategoryEntity[] category) {
++        categoryService.updateBatchById(Arrays.asList(category));
++
++        return R.ok();
++    }
++
+     /**
+      * 修改
+      */
+     @RequestMapping("/update")
+-    public R update(@RequestBody CategoryEntity category){
+-		categoryService.updateById(category);
++    public R update(@RequestBody CategoryEntity category) {
++        categoryService.updateCascade(category);
+ 
+         return R.ok();
+     }
+@@ -76,10 +87,11 @@
+      * 删除
+      */
+     @RequestMapping("/delete")
+-    public R delete(@RequestBody Long[] catIds){
+-		categoryService.removeByIds(Arrays.asList(catIds));
+-
++    public R delete(@RequestBody Long[] catIds) {
++//        categoryService.removeByIds(Arrays.asList(catIds));
++        categoryService.removeMenuByIds(Arrays.asList(catIds));
+         return R.ok();
+     }
+ 
++
+ }
+Index: mall-third-party/src/main/resources/bootstrap.properties
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>GBK
+===================================================================
+--- mall-third-party/src/main/resources/bootstrap.properties	(date 1601644727680)
++++ mall-third-party/src/main/resources/bootstrap.properties	(date 1601644727680)
+@@ -0,0 +1,6 @@
++spring.cloud.nacos.config.server-addr=127.0.0.1:8848
++spring.cloud.nacos.config.namespace=92b91767-c9e4-4d2e-8998-3d51d2825734
++
++spring.cloud.nacos.config.extension-configs[0].data-id=oss.yml
++spring.cloud.nacos.config.extension-configs[0].group=DEFAULT_GROUP
++spring.cloud.nacos.config.extension-configs[0].refresh=true
+\ No newline at end of file
+Index: mall-third-party/pom.xml
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- mall-third-party/pom.xml	(date 1601645075576)
++++ mall-third-party/pom.xml	(date 1601645075576)
+@@ -0,0 +1,94 @@
++<?xml version="1.0" encoding="UTF-8"?>
++<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
++         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
++    <modelVersion>4.0.0</modelVersion>
++    <parent>
++        <groupId>org.springframework.boot</groupId>
++        <artifactId>spring-boot-starter-parent</artifactId>
++        <version>2.3.4.RELEASE</version>
++        <relativePath/> <!-- lookup parent from repository -->
++    </parent>
++    <groupId>com.qian</groupId>
++    <artifactId>mall-third-party</artifactId>
++    <version>0.0.1-SNAPSHOT</version>
++    <name>third-party</name>
++    <description>Demo project for Spring Boot</description>
++
++    <properties>
++        <java.version>1.8</java.version>
++        <spring-cloud.version>Hoxton.SR8</spring-cloud.version>
++    </properties>
++
++    <dependencies>
++        <dependency>
++            <groupId>com.qian</groupId>
++            <artifactId>mall-common</artifactId>
++            <version>0.0.1-SNAPSHOT</version>
++            <exclusions>
++                <exclusion>
++                    <artifactId>jsr305</artifactId>
++                    <groupId>com.google.code.findbugs</groupId>
++                </exclusion>
++                <exclusion>
++                        <groupId>com.baomidou</groupId>
++                        <artifactId>mybatis-plus-boot-starter</artifactId>
++                </exclusion>
++                <exclusion>
++                    <groupId>mysql</groupId>
++                    <artifactId>mysql-connector-java</artifactId>
++                </exclusion>
++                <exclusion>
++                    <groupId>com.alibaba</groupId>
++                    <artifactId>druid-spring-boot-starter</artifactId>
++                </exclusion>
++            </exclusions>
++        </dependency>
++        <dependency>
++            <groupId>org.springframework.boot</groupId>
++            <artifactId>spring-boot-starter-web</artifactId>
++        </dependency>
++        <dependency>
++            <groupId>org.springframework.cloud</groupId>
++            <artifactId>spring-cloud-starter-openfeign</artifactId>
++            <version>2.2.5.RELEASE</version>
++        </dependency>
++        <dependency>
++            <groupId>com.alibaba.cloud</groupId>
++            <artifactId>spring-cloud-starter-alicloud-oss</artifactId>
++
++        </dependency>
++        <dependency>
++            <groupId>org.springframework.boot</groupId>
++            <artifactId>spring-boot-starter-test</artifactId>
++            <scope>test</scope>
++            <exclusions>
++                <exclusion>
++                    <groupId>org.junit.vintage</groupId>
++                    <artifactId>junit-vintage-engine</artifactId>
++                </exclusion>
++            </exclusions>
++        </dependency>
++    </dependencies>
++
++    <dependencyManagement>
++        <dependencies>
++            <dependency>
++                <groupId>com.alibaba.cloud</groupId>
++                <artifactId>spring-cloud-alibaba-dependencies</artifactId>
++                <version>2.2.0.RELEASE</version>
++                <type>pom</type>
++                <scope>import</scope>
++            </dependency>
++        </dependencies>
++    </dependencyManagement>
++
++    <build>
++        <plugins>
++            <plugin>
++                <groupId>org.springframework.boot</groupId>
++                <artifactId>spring-boot-maven-plugin</artifactId>
++            </plugin>
++        </plugins>
++    </build>
++
++</project>
+Index: mall-coupon/src/main/resources/application.yml
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+>server:\r\n  port: 7000\r\nspring:\r\n  datasource:\r\n    type: com.alibaba.druid.pool.DruidDataSource\r\n    driverClassName: com.mysql.cj.jdbc.Driver\r\n    url: jdbc:mysql://localhost:3306/qian_sms?useUnicode=true&characterEncoding=UTF-8&useSSL=false&serverTimezone=Asia/Shanghai\r\n    username: root\r\n    password: zhangqian\r\n  application:\r\n    name: mall-coupon\r\n  cloud:\r\n    nacos:\r\n      discovery:\r\n        server-addr: 127.0.0.1:8848\r\nmybatis-plus:\r\n  mapper-locations: classpath:/mapper/**/*.xml\r\n  global-config:\r\n    db-config:\r\n      id-type: auto
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>GBK
+===================================================================
+--- mall-coupon/src/main/resources/application.yml	(revision f241fe6052679b2ca840b831509dda5d0474560f)
++++ mall-coupon/src/main/resources/application.yml	(date 1600582061864)
+@@ -4,7 +4,7 @@
+   datasource:
+     type: com.alibaba.druid.pool.DruidDataSource
+     driverClassName: com.mysql.cj.jdbc.Driver
+-    url: jdbc:mysql://localhost:3306/qian_sms?useUnicode=true&characterEncoding=UTF-8&useSSL=false&serverTimezone=Asia/Shanghai
++    url: jdbc:mysql://localhost:3306/qian_sms?useUnicode=true&characterEncoding=UTF-8&useSSL=false&serverTimezone=Asia/Shanghai&allowPublicKeyRetrieval=true
+     username: root
+     password: zhangqian
+   application:
+Index: mall-product/src/main/java/com/qian/mall/product/service/impl/AttrGroupServiceImpl.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+>package com.qian.mall.product.service.impl;\r\n\r\nimport org.springframework.stereotype.Service;\r\nimport java.util.Map;\r\nimport com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;\r\nimport com.baomidou.mybatisplus.core.metadata.IPage;\r\nimport com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;\r\nimport com.qian.common.utils.PageUtils;\r\nimport com.qian.common.utils.Query;\r\n\r\nimport com.qian.mall.product.dao.AttrGroupDao;\r\nimport com.qian.mall.product.entity.AttrGroupEntity;\r\nimport com.qian.mall.product.service.AttrGroupService;\r\n\r\n\r\n@Service(\"attrGroupService\")\r\npublic class AttrGroupServiceImpl extends ServiceImpl<AttrGroupDao, AttrGroupEntity> implements AttrGroupService {\r\n\r\n    @Override\r\n    public PageUtils queryPage(Map<String, Object> params) {\r\n        IPage<AttrGroupEntity> page = this.page(\r\n                new Query<AttrGroupEntity>().getPage(params),\r\n                new QueryWrapper<AttrGroupEntity>()\r\n        );\r\n\r\n        return new PageUtils(page);\r\n    }\r\n\r\n}
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- mall-product/src/main/java/com/qian/mall/product/service/impl/AttrGroupServiceImpl.java	(revision f241fe6052679b2ca840b831509dda5d0474560f)
++++ mall-product/src/main/java/com/qian/mall/product/service/impl/AttrGroupServiceImpl.java	(date 1602087104093)
+@@ -1,5 +1,6 @@
+ package com.qian.mall.product.service.impl;
+ 
++import org.apache.commons.lang3.StringUtils;
+ import org.springframework.stereotype.Service;
+ import java.util.Map;
+ import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+@@ -26,4 +27,28 @@
+         return new PageUtils(page);
+     }
+ 
++    @Override
++    public PageUtils queryPage(Map<String, Object> params, Long catelogId) {
++        String key = (String) params.get("key");
++        //select * from pms_attr_group where catelog_id=? and (attr_group_id=key or attr_group_name like %key%)
++        QueryWrapper<AttrGroupEntity> wrapper = new QueryWrapper<AttrGroupEntity>();
++        if(!StringUtils.isEmpty(key)){
++            wrapper.and((obj)->{
++                obj.eq("attr_group_id",key).or().like("attr_group_name",key);
++            });
++        }
++
++        if( catelogId == 0){
++            IPage<AttrGroupEntity> page = this.page(new Query<AttrGroupEntity>().getPage(params),
++                    wrapper);
++            return new PageUtils(page);
++        }else {
++            wrapper.eq("catelog_id",catelogId);
++            IPage<AttrGroupEntity> page = this.page(new Query<AttrGroupEntity>().getPage(params),
++                    wrapper);
++            return new PageUtils(page);
++        }
++
++    }
++
+ }
+\ No newline at end of file
+Index: mall-common/target/classes/application.properties
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>GBK
+===================================================================
+--- mall-common/target/classes/application.properties	(date 1601732438901)
++++ mall-common/target/classes/application.properties	(date 1601732438901)
+@@ -0,0 +1,1 @@
++
+Index: mall-product/src/main/java/com/qian/mall/product/vo/AttrVo.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- mall-product/src/main/java/com/qian/mall/product/vo/AttrVo.java	(date 1602145386522)
++++ mall-product/src/main/java/com/qian/mall/product/vo/AttrVo.java	(date 1602145386522)
+@@ -0,0 +1,49 @@
++package com.qian.mall.product.vo;
++
++import lombok.Data;
++
++@Data
++public class AttrVo {
++    /**
++     * 属性id
++     */
++    private Long attrId;
++    /**
++     * 属性名
++     */
++    private String attrName;
++    /**
++     * 是否需要检索[0-不需要，1-需要]
++     */
++    private Integer searchType;
++    /**
++     * 值类型[0-为单个值，1-可以选择多个值]
++     */
++    private Integer valueType;
++    /**
++     * 属性图标
++     */
++    private String icon;
++    /**
++     * 可选值列表[用逗号分隔]
++     */
++    private String valueSelect;
++    /**
++     * 属性类型[0-销售属性，1-基本属性，2-既是销售属性又是基本属性]
++     */
++    private Integer attrType;
++    /**
++     * 启用状态[0 - 禁用，1 - 启用]
++     */
++    private Long enable;
++    /**
++     * 所属分类
++     */
++    private Long catelogId;
++    /**
++     * 快速展示【是否展示在介绍上；0-否 1-是】，在sku中仍然可以调整
++     */
++    private Integer showDesc;
++
++    private Long attrGroupId;
++}
+Index: mall-product/src/main/java/com/qian/mall/product/service/BrandService.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+>package com.qian.mall.product.service;\r\n\r\nimport com.baomidou.mybatisplus.extension.service.IService;\r\nimport com.qian.common.utils.PageUtils;\r\nimport com.qian.mall.product.entity.BrandEntity;\r\n\r\nimport java.util.Map;\r\n\r\n/**\r\n * 品牌\r\n *\r\n * @author zhangqian\r\n * @email 694656210@qq.com\r\n * @date 2020-09-19 00:38:34\r\n */\r\npublic interface BrandService extends IService<BrandEntity> {\r\n\r\n    PageUtils queryPage(Map<String, Object> params);\r\n}\r\n\r\n
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- mall-product/src/main/java/com/qian/mall/product/service/BrandService.java	(revision f241fe6052679b2ca840b831509dda5d0474560f)
++++ mall-product/src/main/java/com/qian/mall/product/service/BrandService.java	(date 1602137793623)
+@@ -16,5 +16,7 @@
+ public interface BrandService extends IService<BrandEntity> {
+ 
+     PageUtils queryPage(Map<String, Object> params);
++
++    void updateDetail(BrandEntity brand);
+ }
+ 
+Index: mall-product/src/test/java/com/qian/mall/product/MallProductApplicationTests.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+>package com.qian.mall.product;\r\n\r\nimport com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;\r\nimport com.qian.mall.product.entity.BrandEntity;\r\nimport com.qian.mall.product.service.BrandService;\r\nimport org.checkerframework.checker.units.qual.A;\r\nimport org.junit.jupiter.api.Test;\r\nimport org.junit.runner.RunWith;\r\nimport org.springframework.beans.factory.annotation.Autowired;\r\nimport org.springframework.boot.test.context.SpringBootTest;\r\nimport org.springframework.test.context.junit4.SpringRunner;\r\n\r\nimport java.util.ArrayList;\r\nimport java.util.List;\r\n\r\n@SpringBootTest\r\n@RunWith(SpringRunner.class)\r\nclass MallProductApplicationTests {\r\n    @Autowired\r\n    BrandService brandService;\r\n\r\n    @Test\r\n    public void contextLoads() {\r\n//        BrandEntity brandEntity = new BrandEntity();\r\n//        brandEntity.setName(\"qian\");\r\n//        brandService.save(brandEntity);\r\n//\r\n        QueryWrapper<BrandEntity> queryWrapper=new QueryWrapper<>();\r\n        queryWrapper.lambda().eq(BrandEntity::getBrandId,\"1\");\r\n        List<BrandEntity> list=brandService.list(queryWrapper);\r\n        list.forEach((item)->{\r\n            System.out.println(item);\r\n        });\r\n\r\n    }\r\n\r\n}\r\n
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- mall-product/src/test/java/com/qian/mall/product/MallProductApplicationTests.java	(revision f241fe6052679b2ca840b831509dda5d0474560f)
++++ mall-product/src/test/java/com/qian/mall/product/MallProductApplicationTests.java	(date 1601699147458)
+@@ -1,37 +1,62 @@
+ package com.qian.mall.product;
+ 
++
+ import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+ import com.qian.mall.product.entity.BrandEntity;
+ import com.qian.mall.product.service.BrandService;
+-import org.checkerframework.checker.units.qual.A;
++
+ import org.junit.jupiter.api.Test;
+ import org.junit.runner.RunWith;
+ import org.springframework.beans.factory.annotation.Autowired;
+ import org.springframework.boot.test.context.SpringBootTest;
+ import org.springframework.test.context.junit4.SpringRunner;
+ 
+-import java.util.ArrayList;
++
+ import java.util.List;
+ 
++
+ @SpringBootTest
+ @RunWith(SpringRunner.class)
+ class MallProductApplicationTests {
+-    @Autowired
+-    BrandService brandService;
+-
+-    @Test
+-    public void contextLoads() {
+-//        BrandEntity brandEntity = new BrandEntity();
+-//        brandEntity.setName("qian");
+-//        brandService.save(brandEntity);
++//    @Autowired
++//    BrandService brandService;
++////@Autowired
++////OSS oss;
++//
++//    @Test
++//    public void contextLoads() {
++////        BrandEntity brandEntity = new BrandEntity();
++////        brandEntity.setName("qian");
++////        brandService.save(brandEntity);
++////
++//        QueryWrapper<BrandEntity> queryWrapper=new QueryWrapper<>();
++//        queryWrapper.lambda().eq(BrandEntity::getBrandId,"1");
++//        List<BrandEntity> list=brandService.list(queryWrapper);
++//        list.forEach((item)->{
++//            System.out.println(item);
++//        });
+ //
+-        QueryWrapper<BrandEntity> queryWrapper=new QueryWrapper<>();
+-        queryWrapper.lambda().eq(BrandEntity::getBrandId,"1");
+-        List<BrandEntity> list=brandService.list(queryWrapper);
+-        list.forEach((item)->{
+-            System.out.println(item);
+-        });
+-
+-    }
++//    }
++//    @Test
++//    public void upload() throws IOException {
++////// Endpoint以杭州为例，其它Region请按实际情况填写。
++////        String endpoint = "https://oss-cn-zhangjiakou.aliyuncs.com";
++////// 阿里云主账号AccessKey拥有所有API的访问权限，风险很高。强烈建议您创建并使用RAM账号进行API访问或日常运维，请登录RAM控制台创建RAM账号。
++////        String accessKeyId = "LTAI4GEPT8NWiyhQ3XHtbWRG";
++////        String accessKeySecret = "o7gDXT6RfY8H9udojWZviW4ySGYbaI";
++////      String simpleDateFormat=new SimpleDateFormat("yyy-MM-dd").format(new Date());
++////        String bucketName = "qian-mall";
++////// <yourObjectName>上传文件到OSS时需要指定包含文件后缀在内的完整路径，例如abc/efg/123.jpg。
++////        String objectName = bucketName+"/";
++//
++////// 创建OSSClient实例。
++////        oss = new OSSClientBuilder().build(endpoint, accessKeyId, accessKeySecret);
++//
++//// 上传网络流。
++//        InputStream inputStream = new FileInputStream("C:\\Users\\QIAN\\Pictures\\QQ图片20190204210639.jpg");
++//        oss.putObject("qian-mall", "a.jpg", inputStream);
++//// 关闭OSSClient。
++//        oss.shutdown();
++//    }
+ 
+ }
+Index: mall-product/src/main/java/com/qian/mall/product/service/CategoryBrandRelationService.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+>package com.qian.mall.product.service;\r\n\r\nimport com.baomidou.mybatisplus.extension.service.IService;\r\nimport com.qian.common.utils.PageUtils;\r\nimport com.qian.mall.product.entity.CategoryBrandRelationEntity;\r\n\r\nimport java.util.Map;\r\n\r\n/**\r\n * 品牌分类关联\r\n *\r\n * @author zhangqian\r\n * @email 694656210@qq.com\r\n * @date 2020-09-19 00:38:34\r\n */\r\npublic interface CategoryBrandRelationService extends IService<CategoryBrandRelationEntity> {\r\n\r\n    PageUtils queryPage(Map<String, Object> params);\r\n}\r\n\r\n
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- mall-product/src/main/java/com/qian/mall/product/service/CategoryBrandRelationService.java	(revision f241fe6052679b2ca840b831509dda5d0474560f)
++++ mall-product/src/main/java/com/qian/mall/product/service/CategoryBrandRelationService.java	(date 1602138535291)
+@@ -16,5 +16,12 @@
+ public interface CategoryBrandRelationService extends IService<CategoryBrandRelationEntity> {
+ 
+     PageUtils queryPage(Map<String, Object> params);
++
++    void saveDetail(CategoryBrandRelationEntity categoryBrandRelation);
++
++    void updateBrand(Long brandId, String name);
++
++    void updateCategory(Long catId, String name);
++
+ }
+ 
+Index: mall-product/src/main/java/com/qian/mall/product/service/CategoryService.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+>package com.qian.mall.product.service;\r\n\r\nimport com.baomidou.mybatisplus.extension.service.IService;\r\nimport com.qian.common.utils.PageUtils;\r\nimport com.qian.mall.product.entity.CategoryEntity;\r\n\r\nimport java.util.Map;\r\n\r\n/**\r\n * 商品三级分类\r\n *\r\n * @author zhangqian\r\n * @email 694656210@qq.com\r\n * @date 2020-09-19 00:38:34\r\n */\r\npublic interface CategoryService extends IService<CategoryEntity> {\r\n\r\n    PageUtils queryPage(Map<String, Object> params);\r\n}\r\n\r\n
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- mall-product/src/main/java/com/qian/mall/product/service/CategoryService.java	(revision f241fe6052679b2ca840b831509dda5d0474560f)
++++ mall-product/src/main/java/com/qian/mall/product/service/CategoryService.java	(date 1602138389148)
+@@ -4,6 +4,7 @@
+ import com.qian.common.utils.PageUtils;
+ import com.qian.mall.product.entity.CategoryEntity;
+ 
++import java.util.List;
+ import java.util.Map;
+ 
+ /**
+@@ -16,5 +17,19 @@
+ public interface CategoryService extends IService<CategoryEntity> {
+ 
+     PageUtils queryPage(Map<String, Object> params);
++
++    List<CategoryEntity> listWithTree();
++
++    void removeMenuByIds(List<Long> asList);
++
++    /**
++     * 找到catelogid的完整路径
++     * @param catelogId
++     * @return
++     */
++    Long[] findCatelogPath(Long catelogId);
++
++    void updateCascade(CategoryEntity category);
++
+ }
+ 
+Index: mall-third-party/src/main/java/com/qian/thirdparty/ThirdPartyApplication.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- mall-third-party/src/main/java/com/qian/thirdparty/ThirdPartyApplication.java	(date 1601643500964)
++++ mall-third-party/src/main/java/com/qian/thirdparty/ThirdPartyApplication.java	(date 1601643500964)
+@@ -0,0 +1,13 @@
++package com.qian.thirdparty;
++
++import org.springframework.boot.SpringApplication;
++import org.springframework.boot.autoconfigure.SpringBootApplication;
++
++@SpringBootApplication
++public class ThirdPartyApplication {
++
++    public static void main(String[] args) {
++        SpringApplication.run(ThirdPartyApplication.class, args);
++    }
++
++}
+Index: mall-product/src/main/java/com/qian/mall/product/entity/AttrGroupEntity.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+>package com.qian.mall.product.entity;\r\n\r\nimport com.baomidou.mybatisplus.annotation.TableId;\r\nimport com.baomidou.mybatisplus.annotation.TableName;\r\n\r\nimport java.io.Serializable;\r\nimport java.util.Date;\r\nimport lombok.Data;\r\n\r\n/**\r\n * 属性分组\r\n * \r\n * @author zhangqian\r\n * @email 694656210@qq.com\r\n * @date 2020-09-19 00:38:34\r\n */\r\n@Data\r\n@TableName(\"pms_attr_group\")\r\npublic class AttrGroupEntity implements Serializable {\r\n\tprivate static final long serialVersionUID = 1L;\r\n\r\n\t/**\r\n\t * 分组id\r\n\t */\r\n\t@TableId\r\n\tprivate Long attrGroupId;\r\n\t/**\r\n\t * 组名\r\n\t */\r\n\tprivate String attrGroupName;\r\n\t/**\r\n\t * 排序\r\n\t */\r\n\tprivate Integer sort;\r\n\t/**\r\n\t * 描述\r\n\t */\r\n\tprivate String descript;\r\n\t/**\r\n\t * 组图标\r\n\t */\r\n\tprivate String icon;\r\n\t/**\r\n\t * 所属分类id\r\n\t */\r\n\tprivate Long catelogId;\r\n\r\n}\r\n
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- mall-product/src/main/java/com/qian/mall/product/entity/AttrGroupEntity.java	(revision f241fe6052679b2ca840b831509dda5d0474560f)
++++ mall-product/src/main/java/com/qian/mall/product/entity/AttrGroupEntity.java	(date 1602131845086)
+@@ -1,5 +1,6 @@
+ package com.qian.mall.product.entity;
+ 
++import com.baomidou.mybatisplus.annotation.TableField;
+ import com.baomidou.mybatisplus.annotation.TableId;
+ import com.baomidou.mybatisplus.annotation.TableName;
+ 
+@@ -45,4 +46,6 @@
+ 	 */
+ 	private Long catelogId;
+ 
++	@TableField(exist = false)
++	private Long[] catelogPath;
+ }
+Index: renren-fast/src/main/java/io/renren/config/CorsConfig.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+>/**\r\n * Copyright (c) 2016-2019 人人开源 All rights reserved.\r\n *\r\n * https://www.renren.io\r\n *\r\n * 版权所有，侵权必究！\r\n */\r\n\r\npackage io.renren.config;\r\n\r\nimport org.springframework.context.annotation.Configuration;\r\nimport org.springframework.web.servlet.config.annotation.CorsRegistry;\r\nimport org.springframework.web.servlet.config.annotation.WebMvcConfigurer;\r\n\r\n@Configuration\r\npublic class CorsConfig implements WebMvcConfigurer {\r\n\r\n    @Override\r\n    public void addCorsMappings(CorsRegistry registry) {\r\n        registry.addMapping(\"/**\")\r\n            .allowedOrigins(\"*\")\r\n            .allowCredentials(true)\r\n            .allowedMethods(\"GET\", \"POST\", \"PUT\", \"DELETE\", \"OPTIONS\")\r\n            .maxAge(3600);\r\n    }\r\n}
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- renren-fast/src/main/java/io/renren/config/CorsConfig.java	(revision f241fe6052679b2ca840b831509dda5d0474560f)
++++ renren-fast/src/main/java/io/renren/config/CorsConfig.java	(date 1600681042738)
+@@ -15,12 +15,12 @@
+ @Configuration
+ public class CorsConfig implements WebMvcConfigurer {
+ 
+-    @Override
+-    public void addCorsMappings(CorsRegistry registry) {
+-        registry.addMapping("/**")
+-            .allowedOrigins("*")
+-            .allowCredentials(true)
+-            .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS")
+-            .maxAge(3600);
+-    }
++//    @Override
++//    public void addCorsMappings(CorsRegistry registry) {
++//        registry.addMapping("/**")
++//            .allowedOrigins("*")
++//            .allowCredentials(true)
++//            .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS")
++//            .maxAge(3600);
++//    }
+ }
+\ No newline at end of file
+Index: mall-product/src/main/java/com/qian/mall/product/entity/BrandEntity.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+>package com.qian.mall.product.entity;\r\n\r\nimport com.baomidou.mybatisplus.annotation.TableId;\r\nimport com.baomidou.mybatisplus.annotation.TableName;\r\n\r\nimport java.io.Serializable;\r\nimport java.util.Date;\r\nimport lombok.Data;\r\n\r\n/**\r\n * 品牌\r\n * \r\n * @author zhangqian\r\n * @email 694656210@qq.com\r\n * @date 2020-09-19 00:38:34\r\n */\r\n@Data\r\n@TableName(\"pms_brand\")\r\npublic class BrandEntity implements Serializable {\r\n\tprivate static final long serialVersionUID = 1L;\r\n\r\n\t/**\r\n\t * 品牌id\r\n\t */\r\n\t@TableId\r\n\tprivate Long brandId;\r\n\t/**\r\n\t * 品牌名\r\n\t */\r\n\tprivate String name;\r\n\t/**\r\n\t * 品牌logo地址\r\n\t */\r\n\tprivate String logo;\r\n\t/**\r\n\t * 介绍\r\n\t */\r\n\tprivate String descript;\r\n\t/**\r\n\t * 显示状态[0-不显示；1-显示]\r\n\t */\r\n\tprivate Integer showStatus;\r\n\t/**\r\n\t * 检索首字母\r\n\t */\r\n\tprivate String firstLetter;\r\n\t/**\r\n\t * 排序\r\n\t */\r\n\tprivate Integer sort;\r\n\r\n}\r\n
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- mall-product/src/main/java/com/qian/mall/product/entity/BrandEntity.java	(revision f241fe6052679b2ca840b831509dda5d0474560f)
++++ mall-product/src/main/java/com/qian/mall/product/entity/BrandEntity.java	(date 1601732297463)
+@@ -5,7 +5,15 @@
+ 
+ import java.io.Serializable;
+ import java.util.Date;
++
++import com.qian.common.valid.AddGroup;
++import com.qian.common.valid.ListValid;
++import com.qian.common.valid.UpdateGroup;
++import com.qian.common.valid.UpdateStatusGroup;
+ import lombok.Data;
++import org.hibernate.validator.constraints.URL;
++
++import javax.validation.constraints.*;
+ 
+ /**
+  * 品牌
+@@ -19,18 +27,24 @@
+ public class BrandEntity implements Serializable {
+ 	private static final long serialVersionUID = 1L;
+ 
++
+ 	/**
+ 	 * 品牌id
+ 	 */
++	@NotNull(message = "修改必须指定品牌id",groups = {UpdateGroup.class})
++	@Null(message = "新增不能指定id",groups = {AddGroup.class})
+ 	@TableId
+ 	private Long brandId;
+ 	/**
+ 	 * 品牌名
+ 	 */
++	@NotBlank(message = "品牌名必须提交",groups = {AddGroup.class,UpdateGroup.class})
+ 	private String name;
+ 	/**
+ 	 * 品牌logo地址
+ 	 */
++	@NotBlank(groups = {AddGroup.class})
++	@URL(message = "logo必须是一个合法的url地址",groups={AddGroup.class,UpdateGroup.class})
+ 	private String logo;
+ 	/**
+ 	 * 介绍
+@@ -39,14 +53,21 @@
+ 	/**
+ 	 * 显示状态[0-不显示；1-显示]
+ 	 */
++//	@Pattern()
++//	@NotNull(groups = {AddGroup.class, UpdateStatusGroup.class})
++	@ListValid.ListValue(vals={0,1},groups = {AddGroup.class, UpdateStatusGroup.class})
+ 	private Integer showStatus;
+ 	/**
+ 	 * 检索首字母
+ 	 */
++	@NotEmpty(groups={AddGroup.class})
++	@Pattern(regexp="^[a-zA-Z]$",message = "检索首字母必须是一个字母",groups={AddGroup.class,UpdateGroup.class})
+ 	private String firstLetter;
+ 	/**
+ 	 * 排序
+ 	 */
++	@NotNull(groups={AddGroup.class})
++	@Min(value = 0,message = "排序必须大于等于0",groups={AddGroup.class,UpdateGroup.class})
+ 	private Integer sort;
+ 
+ }
+Index: mall-product/src/main/java/com/qian/mall/product/vo/AttrRespVo.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- mall-product/src/main/java/com/qian/mall/product/vo/AttrRespVo.java	(date 1602149211188)
++++ mall-product/src/main/java/com/qian/mall/product/vo/AttrRespVo.java	(date 1602149211188)
+@@ -0,0 +1,15 @@
++package com.qian.mall.product.vo;
++
++import lombok.Data;
++
++@Data
++public class AttrRespVo extends AttrVo {
++    /**
++     * 			"catelogName": "手机/数码/手机", //所属分类名字
++     * 			"groupName": "主体", //所属分组名字
++     */
++    private String catelogName;
++    private String groupName;
++
++    private Long[] catelogPath;
++}
+Index: mall-third-party/src/main/resources/application.properties
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>GBK
+===================================================================
+--- mall-third-party/src/main/resources/application.properties	(date 1601643500248)
++++ mall-third-party/src/main/resources/application.properties	(date 1601643500248)
+@@ -0,0 +1,1 @@
++
+Index: mall-product/src/main/java/com/qian/mall/product/service/impl/BrandServiceImpl.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+>package com.qian.mall.product.service.impl;\r\n\r\nimport org.springframework.stereotype.Service;\r\nimport java.util.Map;\r\nimport com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;\r\nimport com.baomidou.mybatisplus.core.metadata.IPage;\r\nimport com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;\r\nimport com.qian.common.utils.PageUtils;\r\nimport com.qian.common.utils.Query;\r\n\r\nimport com.qian.mall.product.dao.BrandDao;\r\nimport com.qian.mall.product.entity.BrandEntity;\r\nimport com.qian.mall.product.service.BrandService;\r\n\r\n\r\n@Service(\"brandService\")\r\npublic class BrandServiceImpl extends ServiceImpl<BrandDao, BrandEntity> implements BrandService {\r\n\r\n    @Override\r\n    public PageUtils queryPage(Map<String, Object> params) {\r\n        IPage<BrandEntity> page = this.page(\r\n                new Query<BrandEntity>().getPage(params),\r\n                new QueryWrapper<BrandEntity>()\r\n        );\r\n\r\n        return new PageUtils(page);\r\n    }\r\n\r\n}
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- mall-product/src/main/java/com/qian/mall/product/service/impl/BrandServiceImpl.java	(revision f241fe6052679b2ca840b831509dda5d0474560f)
++++ mall-product/src/main/java/com/qian/mall/product/service/impl/BrandServiceImpl.java	(date 1602138236653)
+@@ -1,7 +1,12 @@
+ package com.qian.mall.product.service.impl;
+ 
++import com.qian.mall.product.service.CategoryBrandRelationService;
++import org.apache.commons.lang3.StringUtils;
++import org.springframework.beans.factory.annotation.Autowired;
+ import org.springframework.stereotype.Service;
++
+ import java.util.Map;
++
+ import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+ import com.baomidou.mybatisplus.core.metadata.IPage;
+ import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+@@ -16,14 +21,29 @@
+ @Service("brandService")
+ public class BrandServiceImpl extends ServiceImpl<BrandDao, BrandEntity> implements BrandService {
+ 
++
++    @Autowired
++    CategoryBrandRelationService categoryBrandRelationService;
++
+     @Override
+     public PageUtils queryPage(Map<String, Object> params) {
+-        IPage<BrandEntity> page = this.page(
+-                new Query<BrandEntity>().getPage(params),
+-                new QueryWrapper<BrandEntity>()
+-        );
++        String key = (String) params.get("key");
++        QueryWrapper<BrandEntity> queryWrapper = new QueryWrapper<>();
++        if (!StringUtils.isEmpty(key)) {
++            queryWrapper.eq("brand_id", key).or().like("name", key);
++        }
++        IPage<BrandEntity> page = this.page(new Query<BrandEntity>().getPage(params), queryWrapper);
+ 
+         return new PageUtils(page);
+     }
+ 
++    @Override
++    public void updateDetail(BrandEntity brand) {
++        this.updateById(brand);
++        if (!StringUtils.isEmpty(brand.getName())) {
++            categoryBrandRelationService.updateBrand(brand.getBrandId(), brand.getName());
++        }
++    }
++
++
+ }
+\ No newline at end of file
+Index: mall-product/src/main/java/com/qian/mall/product/service/impl/CategoryBrandRelationServiceImpl.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+>package com.qian.mall.product.service.impl;\r\n\r\nimport org.springframework.stereotype.Service;\r\nimport java.util.Map;\r\nimport com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;\r\nimport com.baomidou.mybatisplus.core.metadata.IPage;\r\nimport com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;\r\nimport com.qian.common.utils.PageUtils;\r\nimport com.qian.common.utils.Query;\r\n\r\nimport com.qian.mall.product.dao.CategoryBrandRelationDao;\r\nimport com.qian.mall.product.entity.CategoryBrandRelationEntity;\r\nimport com.qian.mall.product.service.CategoryBrandRelationService;\r\n\r\n\r\n@Service(\"categoryBrandRelationService\")\r\npublic class CategoryBrandRelationServiceImpl extends ServiceImpl<CategoryBrandRelationDao, CategoryBrandRelationEntity> implements CategoryBrandRelationService {\r\n\r\n    @Override\r\n    public PageUtils queryPage(Map<String, Object> params) {\r\n        IPage<CategoryBrandRelationEntity> page = this.page(\r\n                new Query<CategoryBrandRelationEntity>().getPage(params),\r\n                new QueryWrapper<CategoryBrandRelationEntity>()\r\n        );\r\n\r\n        return new PageUtils(page);\r\n    }\r\n\r\n}
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- mall-product/src/main/java/com/qian/mall/product/service/impl/CategoryBrandRelationServiceImpl.java	(revision f241fe6052679b2ca840b831509dda5d0474560f)
++++ mall-product/src/main/java/com/qian/mall/product/service/impl/CategoryBrandRelationServiceImpl.java	(date 1602138583151)
+@@ -1,5 +1,11 @@
+ package com.qian.mall.product.service.impl;
+ 
++import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
++import com.qian.mall.product.dao.BrandDao;
++import com.qian.mall.product.dao.CategoryDao;
++import com.qian.mall.product.entity.BrandEntity;
++import com.qian.mall.product.entity.CategoryEntity;
++import org.springframework.beans.factory.annotation.Autowired;
+ import org.springframework.stereotype.Service;
+ import java.util.Map;
+ import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+@@ -12,10 +18,17 @@
+ import com.qian.mall.product.entity.CategoryBrandRelationEntity;
+ import com.qian.mall.product.service.CategoryBrandRelationService;
+ 
++import javax.annotation.Resource;
++
+ 
+ @Service("categoryBrandRelationService")
+ public class CategoryBrandRelationServiceImpl extends ServiceImpl<CategoryBrandRelationDao, CategoryBrandRelationEntity> implements CategoryBrandRelationService {
+ 
++    @Resource
++    BrandDao brandDao;
++    @Resource
++    CategoryDao categoryDao;
++
+     @Override
+     public PageUtils queryPage(Map<String, Object> params) {
+         IPage<CategoryBrandRelationEntity> page = this.page(
+@@ -26,4 +39,32 @@
+         return new PageUtils(page);
+     }
+ 
++    @Override
++    public void saveDetail(CategoryBrandRelationEntity categoryBrandRelation) {
++        Long brandId = categoryBrandRelation.getBrandId();
++        Long catelogId = categoryBrandRelation.getCatelogId();
++        //查询详细名字
++        BrandEntity brandEntity = brandDao.selectById(brandId);
++        CategoryEntity categoryEntity = categoryDao.selectById(catelogId);
++
++        categoryBrandRelation.setBrandName(brandEntity.getName());
++        categoryBrandRelation.setCatelogName(categoryEntity.getName());
++        this.save(categoryBrandRelation);
++
++    }
++
++    @Override
++    public void updateBrand(Long brandId, String name) {
++        CategoryBrandRelationEntity relationEntity=new CategoryBrandRelationEntity();
++        relationEntity.setBrandId(brandId);
++        relationEntity.setBrandName(name);
++        this.update(relationEntity,new UpdateWrapper<CategoryBrandRelationEntity>().eq("brand_id",brandId));
++
++    }
++
++    @Override
++    public void updateCategory(Long catId, String name) {
++        this.baseMapper.updateCategory(catId,name);
++    }
++
+ }
+\ No newline at end of file
+Index: mall-product/src/main/java/com/qian/mall/product/service/impl/CategoryServiceImpl.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+>package com.qian.mall.product.service.impl;\r\n\r\nimport org.springframework.stereotype.Service;\r\nimport java.util.Map;\r\nimport com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;\r\nimport com.baomidou.mybatisplus.core.metadata.IPage;\r\nimport com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;\r\nimport com.qian.common.utils.PageUtils;\r\nimport com.qian.common.utils.Query;\r\n\r\nimport com.qian.mall.product.dao.CategoryDao;\r\nimport com.qian.mall.product.entity.CategoryEntity;\r\nimport com.qian.mall.product.service.CategoryService;\r\n\r\n\r\n@Service(\"categoryService\")\r\npublic class CategoryServiceImpl extends ServiceImpl<CategoryDao, CategoryEntity> implements CategoryService {\r\n\r\n    @Override\r\n    public PageUtils queryPage(Map<String, Object> params) {\r\n        IPage<CategoryEntity> page = this.page(\r\n                new Query<CategoryEntity>().getPage(params),\r\n                new QueryWrapper<CategoryEntity>()\r\n        );\r\n\r\n        return new PageUtils(page);\r\n    }\r\n\r\n}
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- mall-product/src/main/java/com/qian/mall/product/service/impl/CategoryServiceImpl.java	(revision f241fe6052679b2ca840b831509dda5d0474560f)
++++ mall-product/src/main/java/com/qian/mall/product/service/impl/CategoryServiceImpl.java	(date 1602138500192)
+@@ -1,7 +1,11 @@
+ package com.qian.mall.product.service.impl;
+ 
++import com.qian.mall.product.service.CategoryBrandRelationService;
+ import org.springframework.stereotype.Service;
+-import java.util.Map;
++
++import java.util.*;
++import java.util.stream.Collectors;
++
+ import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+ import com.baomidou.mybatisplus.core.metadata.IPage;
+ import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+@@ -12,10 +16,15 @@
+ import com.qian.mall.product.entity.CategoryEntity;
+ import com.qian.mall.product.service.CategoryService;
+ 
++import javax.annotation.Resource;
++
+ 
+ @Service("categoryService")
+ public class CategoryServiceImpl extends ServiceImpl<CategoryDao, CategoryEntity> implements CategoryService {
+ 
++    @Resource
++    CategoryBrandRelationService categoryBrandRelationService;
++
+     @Override
+     public PageUtils queryPage(Map<String, Object> params) {
+         IPage<CategoryEntity> page = this.page(
+@@ -26,4 +35,71 @@
+         return new PageUtils(page);
+     }
+ 
++    @Override
++    public List<CategoryEntity> listWithTree() {
++        //查出所有信息
++        List<CategoryEntity> entities = baseMapper.selectList(null);
++        //找到所有一级分类
++//        List<CategoryEntity> list1 = list.stream().filter((categoryEntity -> {
++//            return categoryEntity.getParentCid() == 0;
++//        })).collect(Collectors.toList());
++
++        // 2. 组装成树形结构
++        List<CategoryEntity> levelMenu = entities.stream()
++                .filter(categoryEntity -> categoryEntity.getParentCid() == 0)
++                .map(menu -> {
++                    menu.setChildren(getChildrens(menu, entities));
++                    return menu;
++                }).sorted((m1, m2) -> m1.getSort() == null ? 0 : m1.getSort() - (m2.getSort() == null ? 0 : m2.getSort())).collect(Collectors.toList());
++        return levelMenu;
++    }
++
++    @Override
++    public void removeMenuByIds(List<Long> asList) {
++
++        baseMapper.deleteBatchIds(asList);
++    }
++
++    @Override
++    public Long[] findCatelogPath(Long catelogId) {
++
++        List<Long> paths=new ArrayList<>();
++        List<Long> parentPath = findParentPath(catelogId, paths);
++        Collections.reverse(parentPath);
++        return parentPath.toArray(new Long[parentPath.size()]);
++    }
++
++    /**
++     * 级联更新
++     * @param category
++     */
++    @Override
++    public void updateCascade(CategoryEntity category) {
++this.updateById(category);
++categoryBrandRelationService.updateCategory(category.getCatId(),category.getName());
++    }
++
++    private List<Long> findParentPath(Long catelogId,List<Long> paths){
++        //收集当前节点
++        paths.add(catelogId);
++        CategoryEntity byId=this.getById(catelogId);
++        if (byId.getParentCid()!=0){
++            findParentPath(byId.getParentCid(),paths);
++        }
++        return paths;
++}
++
++    //递归查找
++    private List<CategoryEntity> getChildrens(CategoryEntity root, List<CategoryEntity> all) {
++        List<CategoryEntity> children = all.stream()
++                .filter(categoryEntity -> categoryEntity.getParentCid() == root.getCatId())
++                .map(categoryEntity -> {
++                    categoryEntity.setChildren(getChildrens(categoryEntity, all));
++                    return categoryEntity;
++                })
++                .sorted((m1, m2) -> m1.getSort() == null ? 0 : m1.getSort() - (m2.getSort() == null ? 0 : m2.getSort()))
++                .collect(Collectors.toList());
++        return children;
++    }
++
+ }
+\ No newline at end of file
+Index: mall-ware/src/main/resources/application.yml
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+>server:\r\n  port: 11000\r\n\r\n# mysql\r\nspring:\r\n  datasource:\r\n    type: com.alibaba.druid.pool.DruidDataSource\r\n    driverClassName: com.mysql.cj.jdbc.Driver\r\n    url: jdbc:mysql://localhost:3306/qian_wms?useUnicode=true&characterEncoding=UTF-8&useSSL=false&serverTimezone=Asia/Shanghai\r\n    username: root\r\n    password: zhangqian\r\nmybatis-plus:\r\n  mapper-locations: classpath:/mapper/**/*.xml\r\n  global-config:\r\n    db-config:\r\n      id-type: auto
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- mall-ware/src/main/resources/application.yml	(revision f241fe6052679b2ca840b831509dda5d0474560f)
++++ mall-ware/src/main/resources/application.yml	(date 1600582160102)
+@@ -6,7 +6,7 @@
+   datasource:
+     type: com.alibaba.druid.pool.DruidDataSource
+     driverClassName: com.mysql.cj.jdbc.Driver
+-    url: jdbc:mysql://localhost:3306/qian_wms?useUnicode=true&characterEncoding=UTF-8&useSSL=false&serverTimezone=Asia/Shanghai
++    url: jdbc:mysql://localhost:3306/qian_wms?useUnicode=true&characterEncoding=UTF-8&useSSL=false&serverTimezone=Asia/Shanghai&allowPublicKeyRetrieval=true
+     username: root
+     password: zhangqian
+ mybatis-plus:
+Index: mall-product/src/main/java/com/qian/mall/product/dao/CategoryBrandRelationDao.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+>package com.qian.mall.product.dao;\r\n\r\nimport com.qian.mall.product.entity.CategoryBrandRelationEntity;\r\nimport com.baomidou.mybatisplus.core.mapper.BaseMapper;\r\nimport org.apache.ibatis.annotations.Mapper;\r\n\r\n/**\r\n * 品牌分类关联\r\n * \r\n * @author zhangqian\r\n * @email 694656210@qq.com\r\n * @date 2020-09-19 00:38:34\r\n */\r\n@Mapper\r\npublic interface CategoryBrandRelationDao extends BaseMapper<CategoryBrandRelationEntity> {\r\n\t\r\n}\r\n
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- mall-product/src/main/java/com/qian/mall/product/dao/CategoryBrandRelationDao.java	(revision f241fe6052679b2ca840b831509dda5d0474560f)
++++ mall-product/src/main/java/com/qian/mall/product/dao/CategoryBrandRelationDao.java	(date 1602138620800)
+@@ -3,6 +3,7 @@
+ import com.qian.mall.product.entity.CategoryBrandRelationEntity;
+ import com.baomidou.mybatisplus.core.mapper.BaseMapper;
+ import org.apache.ibatis.annotations.Mapper;
++import org.apache.ibatis.annotations.Param;
+ 
+ /**
+  * 品牌分类关联
+@@ -13,5 +14,7 @@
+  */
+ @Mapper
+ public interface CategoryBrandRelationDao extends BaseMapper<CategoryBrandRelationEntity> {
+-	
++
++    void updateCategory(@Param("catId") Long catId,@Param(("name")) String name);
++
+ }
+Index: mall-common/src/main/java/com/qian/common/valid/ListValid.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- mall-common/src/main/java/com/qian/common/valid/ListValid.java	(date 1601732118018)
++++ mall-common/src/main/java/com/qian/common/valid/ListValid.java	(date 1601732118018)
+@@ -0,0 +1,26 @@
++package com.qian.common.valid;
++
++import javax.validation.Constraint;
++import javax.validation.Payload;
++import java.lang.annotation.Documented;
++import java.lang.annotation.Retention;
++import java.lang.annotation.Target;
++
++import static java.lang.annotation.ElementType.*;
++import static java.lang.annotation.RetentionPolicy.RUNTIME;
++
++public interface ListValid {
++    @Documented
++    @Constraint(validatedBy = { ListValueConstraintValidator.class })
++    @Target({ METHOD, FIELD, ANNOTATION_TYPE, CONSTRUCTOR, PARAMETER, TYPE_USE })
++    @Retention(RUNTIME)
++    public @interface ListValue {
++        String message() default "{com.atguigu.common.valid.ListValue.message}";
++
++        Class<?>[] groups() default { };
++
++        Class<? extends Payload>[] payload() default { };
++
++        int[] vals() default { };
++    }
++}
+Index: mall-common/src/main/java/com/qian/common/valid/UpdateGroup.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- mall-common/src/main/java/com/qian/common/valid/UpdateGroup.java	(date 1601728793480)
++++ mall-common/src/main/java/com/qian/common/valid/UpdateGroup.java	(date 1601728793480)
+@@ -0,0 +1,4 @@
++package com.qian.common.valid;
++
++public interface UpdateGroup {
++}
+Index: mall-order/src/main/resources/application.yml
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+>server:\r\n  port: 9000\r\n\r\n# mysql\r\nspring:\r\n  datasource:\r\n    type: com.alibaba.druid.pool.DruidDataSource\r\n    driverClassName: com.mysql.cj.jdbc.Driver\r\n    url: jdbc:mysql://localhost:3306/qian_oms?useUnicode=true&characterEncoding=UTF-8&useSSL=false&serverTimezone=Asia/Shanghai\r\n    username: root\r\n    password: zhangqian\r\nmybatis-plus:\r\n  mapper-locations: classpath:/mapper/**/*.xml\r\n  global-config:\r\n    db-config:\r\n      id-type: auto
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- mall-order/src/main/resources/application.yml	(revision f241fe6052679b2ca840b831509dda5d0474560f)
++++ mall-order/src/main/resources/application.yml	(date 1600582160109)
+@@ -6,7 +6,7 @@
+   datasource:
+     type: com.alibaba.druid.pool.DruidDataSource
+     driverClassName: com.mysql.cj.jdbc.Driver
+-    url: jdbc:mysql://localhost:3306/qian_oms?useUnicode=true&characterEncoding=UTF-8&useSSL=false&serverTimezone=Asia/Shanghai
++    url: jdbc:mysql://localhost:3306/qian_oms?useUnicode=true&characterEncoding=UTF-8&useSSL=false&serverTimezone=Asia/Shanghai&allowPublicKeyRetrieval=true
+     username: root
+     password: zhangqian
+ mybatis-plus:
+Index: mall-common/src/main/java/com/qian/common/valid/AddGroup.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- mall-common/src/main/java/com/qian/common/valid/AddGroup.java	(date 1601728348042)
++++ mall-common/src/main/java/com/qian/common/valid/AddGroup.java	(date 1601728348042)
+@@ -0,0 +1,4 @@
++package com.qian.common.valid;
++
++public interface AddGroup {
++}
+Index: mall-common/pom.xml
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+><?xml version=\"1.0\" encoding=\"UTF-8\"?>\r\n<project xmlns=\"http://maven.apache.org/POM/4.0.0\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\"\r\n         xsi:schemaLocation=\"http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd\">\r\n    <parent>\r\n        <artifactId>qianmall</artifactId>\r\n        <groupId>org.example</groupId>\r\n        <version>1.0-SNAPSHOT</version>\r\n    </parent>\r\n    <modelVersion>4.0.0</modelVersion>\r\n\r\n\r\n    <groupId>com.qian</groupId>\r\n    <artifactId>mall-common</artifactId>\r\n    <version>0.0.1-SNAPSHOT</version>\r\n    <name>mall-common</name>\r\n    <description>公共类</description>\r\n\r\n\r\n    <dependencies>\r\n        <!--    mybatis plus -->\r\n        <dependency>\r\n            <groupId>com.baomidou</groupId>\r\n            <artifactId>mybatis-plus-boot-starter</artifactId>\r\n            <version>3.4.0</version>\r\n        </dependency>\r\n        <!-- https://mvnrepository.com/artifact/org.apache.httpcomponents/httpcore -->\r\n        <dependency>\r\n            <groupId>org.apache.httpcomponents</groupId>\r\n            <artifactId>httpcore</artifactId>\r\n            <version>4.4.13</version>\r\n        </dependency>\r\n        <!--        插件-->\r\n        <dependency>\r\n            <groupId>org.projectlombok</groupId>\r\n            <artifactId>lombok</artifactId>\r\n            <version>1.18.12</version>\r\n        </dependency>\r\n        <dependency>\r\n            <groupId>commons-lang</groupId>\r\n            <artifactId>commons-lang</artifactId>\r\n            <version>2.6</version>\r\n        </dependency>\r\n        <dependency>\r\n            <groupId>javax.servlet</groupId>\r\n            <artifactId>servlet-api</artifactId>\r\n            <version>2.5</version>\r\n            <scope>provided</scope>\r\n        </dependency>\r\n\r\n        <dependency>\r\n            <groupId>mysql</groupId>\r\n            <artifactId>mysql-connector-java</artifactId>\r\n            <version>8.0.20</version>\r\n        </dependency>\r\n        <dependency>\r\n            <groupId>com.alibaba</groupId>\r\n            <artifactId>druid-spring-boot-starter</artifactId>\r\n            <version>1.1.22</version>\r\n        </dependency>\r\n        <dependency>\r\n            <groupId>org.springframework</groupId>\r\n            <artifactId>spring-web</artifactId>\r\n            <version>5.2.7.RELEASE</version>\r\n        </dependency>\r\n        <dependency>\r\n            <groupId>org.apache.shiro</groupId>\r\n            <artifactId>shiro-core</artifactId>\r\n            <version>1.5.3</version>\r\n        </dependency>\r\n        <dependency>\r\n            <groupId>org.springframework</groupId>\r\n            <artifactId>spring-webmvc</artifactId>\r\n            <version>5.2.7.RELEASE</version>\r\n            <exclusions>\r\n                <exclusion>\r\n                    <artifactId>spring-web</artifactId>\r\n                    <groupId>org.springframework</groupId>\r\n                </exclusion>\r\n            </exclusions>\r\n        </dependency>\r\n        <!--注册发现-->\r\n        <dependency>\r\n            <groupId>com.alibaba.cloud</groupId>\r\n            <artifactId>spring-cloud-starter-alibaba-nacos-discovery</artifactId>\r\n        </dependency>\r\n        <!--注册配置-->\r\n        <dependency>\r\n            <groupId>com.alibaba.cloud</groupId>\r\n            <artifactId>spring-cloud-alibaba-nacos-config</artifactId>\r\n        </dependency>\r\n    </dependencies>\r\n\r\n\r\n</project>\r\n
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- mall-common/pom.xml	(revision f241fe6052679b2ca840b831509dda5d0474560f)
++++ mall-common/pom.xml	(date 1601731979232)
+@@ -62,6 +62,15 @@
+             <artifactId>spring-web</artifactId>
+             <version>5.2.7.RELEASE</version>
+         </dependency>
++        <dependency>
++            <groupId>org.hibernate.validator</groupId>
++            <artifactId>hibernate-validator</artifactId>
++        </dependency>
++        <dependency>
++            <groupId>javax.validation</groupId>
++            <artifactId>validation-api</artifactId>
++        </dependency>
++
+         <dependency>
+             <groupId>org.apache.shiro</groupId>
+             <artifactId>shiro-core</artifactId>
+@@ -86,7 +95,7 @@
+         <!--注册配置-->
+         <dependency>
+             <groupId>com.alibaba.cloud</groupId>
+-            <artifactId>spring-cloud-alibaba-nacos-config</artifactId>
++            <artifactId>spring-cloud-starter-alibaba-nacos-config</artifactId>
+         </dependency>
+     </dependencies>
+ 
+Index: mall-product/src/main/java/com/qian/mall/product/entity/CategoryEntity.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+>package com.qian.mall.product.entity;\r\n\r\nimport com.baomidou.mybatisplus.annotation.TableId;\r\nimport com.baomidou.mybatisplus.annotation.TableName;\r\n\r\nimport java.io.Serializable;\r\nimport java.util.Date;\r\nimport lombok.Data;\r\n\r\n/**\r\n * 商品三级分类\r\n * \r\n * @author zhangqian\r\n * @email 694656210@qq.com\r\n * @date 2020-09-19 00:38:34\r\n */\r\n@Data\r\n@TableName(\"pms_category\")\r\npublic class CategoryEntity implements Serializable {\r\n\tprivate static final long serialVersionUID = 1L;\r\n\r\n\t/**\r\n\t * 分类id\r\n\t */\r\n\t@TableId\r\n\tprivate Long catId;\r\n\t/**\r\n\t * 分类名称\r\n\t */\r\n\tprivate String name;\r\n\t/**\r\n\t * 父分类id\r\n\t */\r\n\tprivate Long parentCid;\r\n\t/**\r\n\t * 层级\r\n\t */\r\n\tprivate Integer catLevel;\r\n\t/**\r\n\t * 是否显示[0-不显示，1显示]\r\n\t */\r\n\tprivate Integer showStatus;\r\n\t/**\r\n\t * 排序\r\n\t */\r\n\tprivate Integer sort;\r\n\t/**\r\n\t * 图标地址\r\n\t */\r\n\tprivate String icon;\r\n\t/**\r\n\t * 计量单位\r\n\t */\r\n\tprivate String productUnit;\r\n\t/**\r\n\t * 商品数量\r\n\t */\r\n\tprivate Integer productCount;\r\n\r\n}\r\n
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- mall-product/src/main/java/com/qian/mall/product/entity/CategoryEntity.java	(revision f241fe6052679b2ca840b831509dda5d0474560f)
++++ mall-product/src/main/java/com/qian/mall/product/entity/CategoryEntity.java	(date 1602130751970)
+@@ -1,12 +1,21 @@
+ package com.qian.mall.product.entity;
+ 
++import com.baomidou.mybatisplus.annotation.TableField;
+ import com.baomidou.mybatisplus.annotation.TableId;
++import com.baomidou.mybatisplus.annotation.TableLogic;
+ import com.baomidou.mybatisplus.annotation.TableName;
+ 
+ import java.io.Serializable;
+-import java.util.Date;
++import java.util.List;
++
++import com.fasterxml.jackson.annotation.JsonInclude;
++import com.qian.common.valid.AddGroup;
++import com.qian.common.valid.UpdateGroup;
+ import lombok.Data;
+ 
++import javax.validation.constraints.NotNull;
++import javax.validation.constraints.Null;
++
+ /**
+  * 商品三级分类
+  * 
+@@ -39,6 +48,7 @@
+ 	/**
+ 	 * 是否显示[0-不显示，1显示]
+ 	 */
++	@TableLogic(value = "1",delval = "0")
+ 	private Integer showStatus;
+ 	/**
+ 	 * 排序
+@@ -57,4 +67,7 @@
+ 	 */
+ 	private Integer productCount;
+ 
++	@JsonInclude(JsonInclude.Include.NON_EMPTY)
++	@TableField(exist = false)
++	private List<CategoryEntity> children;
+ }
+Index: mall-third-party/src/test/java/com/qian/thirdparty/ThirdPartyApplicationTests.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- mall-third-party/src/test/java/com/qian/thirdparty/ThirdPartyApplicationTests.java	(date 1601699530190)
++++ mall-third-party/src/test/java/com/qian/thirdparty/ThirdPartyApplicationTests.java	(date 1601699530190)
+@@ -0,0 +1,41 @@
++package com.qian.thirdparty;
++
++import com.aliyun.oss.OSS;
++import org.junit.jupiter.api.Test;
++import org.springframework.beans.factory.annotation.Autowired;
++import org.springframework.boot.test.context.SpringBootTest;
++
++import java.io.FileInputStream;
++import java.io.IOException;
++import java.io.InputStream;
++
++@SpringBootTest
++class ThirdPartyApplicationTests {
++//@Autowired
++//    OSS oss;
++//    @Test
++//    void contextLoads() {
++//    }
++//    @Test
++//    public void upload() throws IOException {
++////// Endpoint以杭州为例，其它Region请按实际情况填写。
++////        String endpoint = "https://oss-cn-zhangjiakou.aliyuncs.com";
++////// 阿里云主账号AccessKey拥有所有API的访问权限，风险很高。强烈建议您创建并使用RAM账号进行API访问或日常运维，请登录RAM控制台创建RAM账号。
++////        String accessKeyId = "LTAI4GEPT8NWiyhQ3XHtbWRG";
++////        String accessKeySecret = "o7gDXT6RfY8H9udojWZviW4ySGYbaI";
++////      String simpleDateFormat=new SimpleDateFormat("yyy-MM-dd").format(new Date());
++////        String bucketName = "qian-mall";
++////// <yourObjectName>上传文件到OSS时需要指定包含文件后缀在内的完整路径，例如abc/efg/123.jpg。
++////        String objectName = bucketName+"/";
++//
++////// 创建OSSClient实例。
++////        oss = new OSSClientBuilder().build(endpoint, accessKeyId, accessKeySecret);
++//
++//// 上传网络流。
++//        InputStream inputStream = new FileInputStream("C:\\Users\\QIAN\\Pictures\\QQ图片20190204210639.jpg");
++//        oss.putObject("qian-mall", "a.jpg", inputStream);
++//// 关闭OSSClient。
++//        oss.shutdown();
++//    }
++
++}
+Index: mall-common/src/main/java/com/qian/common/valid/UpdateStatusGroup.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- mall-common/src/main/java/com/qian/common/valid/UpdateStatusGroup.java	(date 1601732250179)
++++ mall-common/src/main/java/com/qian/common/valid/UpdateStatusGroup.java	(date 1601732250179)
+@@ -0,0 +1,4 @@
++package com.qian.common.valid;
++
++public interface UpdateStatusGroup {
++}
+Index: mall-common/src/main/java/com/qian/common/valid/ListValueConstraintValidator.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- mall-common/src/main/java/com/qian/common/valid/ListValueConstraintValidator.java	(date 1601732297450)
++++ mall-common/src/main/java/com/qian/common/valid/ListValueConstraintValidator.java	(date 1601732297450)
+@@ -0,0 +1,35 @@
++package com.qian.common.valid;
++
++import javax.validation.ConstraintValidator;
++import javax.validation.ConstraintValidatorContext;
++import java.util.HashSet;
++import java.util.Set;
++
++public class ListValueConstraintValidator implements ConstraintValidator<ListValid.ListValue,Integer> {
++
++    private Set<Integer> set = new HashSet<>();
++    //初始化方法
++    @Override
++    public void initialize(ListValid.ListValue constraintAnnotation) {
++
++        int[] vals = constraintAnnotation.vals();
++        for (int val : vals) {
++            set.add(val);
++        }
++
++    }
++
++    //判断是否校验成功
++
++    /**
++     *
++     * @param value 需要校验的值
++     * @param context
++     * @return
++     */
++    @Override
++    public boolean isValid(Integer value, ConstraintValidatorContext context) {
++
++        return set.contains(value);
++    }
++}
+Index: pom.xml
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+><?xml version=\"1.0\" encoding=\"UTF-8\"?>\r\n<project xmlns=\"http://maven.apache.org/POM/4.0.0\"\r\n         xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\"\r\n         xsi:schemaLocation=\"http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd\">\r\n    <modelVersion>4.0.0</modelVersion>\r\n\r\n    <groupId>org.example</groupId>\r\n    <artifactId>qianmall</artifactId>\r\n    <version>1.0-SNAPSHOT</version>\r\n    <name>Qian-Mall</name>\r\n    <packaging>pom</packaging>\r\n    <description>版本控制</description>\r\n\r\n    <parent>\r\n        <groupId>org.springframework.boot</groupId>\r\n        <artifactId>spring-boot-starter-parent</artifactId>\r\n        <version>2.3.3.RELEASE</version>\r\n        <relativePath/> <!-- lookup parent from repository -->\r\n    </parent>\r\n\r\n\r\n    <properties>\r\n        <java.version>1.8</java.version>\r\n        <spring-cloud.version>Hoxton.SR8</spring-cloud.version>\r\n    </properties>\r\n\r\n    <modules>\r\n        <module>mall-coupon</module>\r\n        <module>mall-member</module>\r\n        <module>mall-order</module>\r\n        <module>mall-product</module>\r\n        <module>mall-ware</module>\r\n        <module>mall-common</module>\r\n        <module>renren-fast</module>\r\n        <module>renren-generator</module>\r\n    </modules>\r\n\r\n\r\n\r\n    <dependencyManagement>\r\n        <dependencies>\r\n            <dependency>\r\n                <groupId>com.alibaba.cloud</groupId>\r\n                <artifactId>spring-cloud-alibaba-dependencies</artifactId>\r\n                <version>2.2.0.RELEASE</version>\r\n                <type>pom</type>\r\n                <scope>import</scope>\r\n            </dependency>\r\n        </dependencies>\r\n    </dependencyManagement>\r\n\r\n</project>
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- pom.xml	(revision f241fe6052679b2ca840b831509dda5d0474560f)
++++ pom.xml	(date 1601643676055)
+@@ -31,8 +31,10 @@
+         <module>mall-product</module>
+         <module>mall-ware</module>
+         <module>mall-common</module>
++        <module>mall-gateway</module>
+         <module>renren-fast</module>
+         <module>renren-generator</module>
++        <module>mall-third-party</module>
+     </modules>
+ 
+ 
+Index: mall-member/src/main/resources/bootstrap.properties
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+>spring.application.name=qian-member\r\nspring.cloud.nacos.config.server-addr=127.0.0.1:8848\r\n
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>GBK
+===================================================================
+--- mall-member/src/main/resources/bootstrap.properties	(revision f241fe6052679b2ca840b831509dda5d0474560f)
++++ mall-member/src/main/resources/bootstrap.properties	(date 1600575189322)
+@@ -1,2 +1,2 @@
+-spring.application.name=qian-member
++spring.application.name=mall-member
+ spring.cloud.nacos.config.server-addr=127.0.0.1:8848
+Index: mall-product/pom.xml
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+><?xml version=\"1.0\" encoding=\"UTF-8\"?>\r\n<project xmlns=\"http://maven.apache.org/POM/4.0.0\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\"\r\n         xsi:schemaLocation=\"http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd\">\r\n    <modelVersion>4.0.0</modelVersion>\r\n    <parent>\r\n        <groupId>org.springframework.boot</groupId>\r\n        <artifactId>spring-boot-starter-parent</artifactId>\r\n        <version>2.3.3.RELEASE</version>\r\n        <relativePath/> <!-- lookup parent from repository -->\r\n    </parent>\r\n    <groupId>com.qian.mall</groupId>\r\n    <artifactId>mall-product</artifactId>\r\n    <version>0.0.1-SNAPSHOT</version>\r\n    <name>mall-product</name>\r\n    <description>商品服务</description>\r\n\r\n    <properties>\r\n        <java.version>1.8</java.version>\r\n        <spring-cloud.version>Hoxton.SR8</spring-cloud.version>\r\n    </properties>\r\n\r\n    <dependencies>\r\n        <dependency>\r\n            <groupId>org.springframework.boot</groupId>\r\n            <artifactId>spring-boot-starter-web</artifactId>\r\n        </dependency>\r\n        <dependency>\r\n            <groupId>org.springframework.cloud</groupId>\r\n            <artifactId>spring-cloud-starter-openfeign</artifactId>\r\n        </dependency>\r\n\r\n        <dependency>\r\n            <groupId>org.springframework.boot</groupId>\r\n            <artifactId>spring-boot-starter-test</artifactId>\r\n            <scope>test</scope>\r\n            <exclusions>\r\n                <exclusion>\r\n                    <groupId>org.junit.vintage</groupId>\r\n                    <artifactId>junit-vintage-engine</artifactId>\r\n                </exclusion>\r\n            </exclusions>\r\n        </dependency>\r\n<!--引入依赖-->\r\n        <dependency>\r\n            <groupId>com.qian</groupId>\r\n            <artifactId>mall-common</artifactId>\r\n            <version>0.0.1-SNAPSHOT</version>\r\n        </dependency>\r\n        <dependency>\r\n            <groupId>junit</groupId>\r\n            <artifactId>junit</artifactId>\r\n            <scope>test</scope>\r\n        </dependency>\r\n        <dependency>\r\n            <groupId>junit</groupId>\r\n            <artifactId>junit</artifactId>\r\n            <version>4.13</version>\r\n            <scope>test</scope>\r\n        </dependency>\r\n\r\n\r\n    </dependencies>\r\n\r\n    <dependencyManagement>\r\n        <dependencies>\r\n            <dependency>\r\n                <groupId>org.springframework.cloud</groupId>\r\n                <artifactId>spring-cloud-dependencies</artifactId>\r\n                <version>${spring-cloud.version}</version>\r\n                <type>pom</type>\r\n                <scope>import</scope>\r\n            </dependency>\r\n        </dependencies>\r\n    </dependencyManagement>\r\n\r\n    <build>\r\n        <plugins>\r\n            <plugin>\r\n                <groupId>org.springframework.boot</groupId>\r\n                <artifactId>spring-boot-maven-plugin</artifactId>\r\n            </plugin>\r\n        </plugins>\r\n    </build>\r\n\r\n</project>\r\n
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- mall-product/pom.xml	(revision f241fe6052679b2ca840b831509dda5d0474560f)
++++ mall-product/pom.xml	(date 1601713702825)
+@@ -57,6 +57,11 @@
+             <version>4.13</version>
+             <scope>test</scope>
+         </dependency>
++        <dependency>
++            <groupId>com.qian</groupId>
++            <artifactId>mall-third-party</artifactId>
++            <version>0.0.1-SNAPSHOT</version>
++        </dependency>
+ 
+ 
+     </dependencies>
+Index: renren-generator/src/main/resources/generator.properties
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+>#\\u4EE3\\u7801\\u751F\\u6210\\u5668\\uFF0C\\u914D\\u7F6E\\u4FE1\\u606F\r\n\r\nmainPath=com.qian\r\n#\\u5305\\u540D\r\npackage=com.qian.mall\r\nmoduleName=ware\r\n#\\u4F5C\\u8005\r\nauthor=zhangqian\r\n#Email\r\nemail=694656210@qq.com\r\n#\\u8868\\u524D\\u7F00(\\u7C7B\\u540D\\u4E0D\\u4F1A\\u5305\\u542B\\u8868\\u524D\\u7F00)\r\ntablePrefix=wms_\r\n\r\n#\\u7C7B\\u578B\\u8F6C\\u6362\\uFF0C\\u914D\\u7F6E\\u4FE1\\u606F\r\ntinyint=Integer\r\nsmallint=Integer\r\nmediumint=Integer\r\nint=Integer\r\ninteger=Integer\r\nbigint=Long\r\nfloat=Float\r\ndouble=Double\r\ndecimal=BigDecimal\r\nbit=Boolean\r\n\r\nchar=String\r\nvarchar=String\r\ntinytext=String\r\ntext=String\r\nmediumtext=String\r\nlongtext=String\r\n\r\n\r\ndate=Date\r\ndatetime=Date\r\ntimestamp=Date\r\n\r\nNUMBER=Integer\r\nINT=Integer\r\nINTEGER=Integer\r\nBINARY_INTEGER=Integer\r\nLONG=String\r\nFLOAT=Float\r\nBINARY_FLOAT=Float\r\nDOUBLE=Double\r\nBINARY_DOUBLE=Double\r\nDECIMAL=BigDecimal\r\nCHAR=String\r\nVARCHAR=String\r\nVARCHAR2=String\r\nNVARCHAR=String\r\nNVARCHAR2=String\r\nCLOB=String\r\nBLOB=String\r\nDATE=Date\r\nDATETIME=Date\r\nTIMESTAMP=Date\r\nTIMESTAMP(6)=Date\r\n\r\nint8=Long\r\nint4=Integer\r\nint2=Integer\r\nnumeric=BigDecimal\r\n\r\nnvarchar=String
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>GBK
+===================================================================
+--- renren-generator/src/main/resources/generator.properties	(revision f241fe6052679b2ca840b831509dda5d0474560f)
++++ renren-generator/src/main/resources/generator.properties	(date 1601359458468)
+@@ -3,13 +3,13 @@
+ mainPath=com.qian
+ #\u5305\u540D
+ package=com.qian.mall
+-moduleName=ware
++moduleName=product
+ #\u4F5C\u8005
+ author=zhangqian
+ #Email
+ email=694656210@qq.com
+ #\u8868\u524D\u7F00(\u7C7B\u540D\u4E0D\u4F1A\u5305\u542B\u8868\u524D\u7F00)
+-tablePrefix=wms_
++tablePrefix=pms_
+ 
+ #\u7C7B\u578B\u8F6C\u6362\uFF0C\u914D\u7F6E\u4FE1\u606F
+ tinyint=Integer
+Index: mall-gateway/src/main/resources/application.yml
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- mall-gateway/src/main/resources/application.yml	(date 1601649153928)
++++ mall-gateway/src/main/resources/application.yml	(date 1601649153928)
+@@ -0,0 +1,38 @@
++spring:
++  application:
++    name: mall-gateway
++  cloud:
++    nacos:
++      discovery:
++        server-addr: 127.0.0.1:8848
++    gateway:
++      routes:
++        - id: test_route
++          uri: http://www.baidu.com
++          predicates:
++            - Query=url,baidu
++        - id: qq_route
++          uri: http://www.qq.com
++          predicates:
++            - Query=url,qq
++        - id: product_route
++          uri: lb://mall-product
++          predicates:
++            - Path=/api/product/**
++          filters:
++            - RewritePath=/api/(?<segment>.*),/$\{segment}
++        - id: thirdparty_route
++          uri: lb://mall-third-party
++          predicates:
++            - Path=/api/thirdparty/**
++          filters:
++            - RewritePath=/api/thirdparty/(?<segment>.*),/$\{segment}
++        - id: admin_route
++          uri: lb://renren-fast
++          predicates:
++            - Path=/api/**
++          filters:
++            - RewritePath=/api/(?<segment>.*),/renren-fast/$\{segment}
++
++server:
++  port: 88
+\ No newline at end of file
+Index: renren-generator/src/main/resources/application.yml
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+>server:\r\n  port: 80\r\n\r\n\r\nspring:\r\n  datasource:\r\n    type: com.alibaba.druid.pool.DruidDataSource\r\n    driverClassName: com.mysql.cj.jdbc.Driver\r\n    url: jdbc:mysql://localhost:3306/qian_wms?useUnicode=true&characterEncoding=UTF-8&useSSL=false&serverTimezone=Asia/Shanghai\r\n    username: root\r\n    password: zhangqian\r\n\r\n\r\n\r\n  jackson:\r\n    time-zone: GMT+8\r\n    date-format: yyyy-MM-dd HH:mm:ss\r\n  resources:\r\n    static-locations: classpath:/static/,classpath:/views/\r\n\r\n\r\nmybatis-plus:\r\n  mapperLocations: classpath:mapper/**/*.xml\r\n\r\n\r\npagehelper:\r\n  reasonable: true\r\n  supportMethodsArguments: true\r\n  params: count=countSql\r\n\r\n\r\nrenren:\r\n  database: mysql\r\n\r\n
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>GBK
+===================================================================
+--- renren-generator/src/main/resources/application.yml	(revision f241fe6052679b2ca840b831509dda5d0474560f)
++++ renren-generator/src/main/resources/application.yml	(date 1601358897104)
+@@ -1,12 +1,12 @@
+ server:
+-  port: 80
++  port: 8081
+ 
+ 
+ spring:
+   datasource:
+     type: com.alibaba.druid.pool.DruidDataSource
+     driverClassName: com.mysql.cj.jdbc.Driver
+-    url: jdbc:mysql://localhost:3306/qian_wms?useUnicode=true&characterEncoding=UTF-8&useSSL=false&serverTimezone=Asia/Shanghai
++    url: jdbc:mysql://localhost:3306/qian_pms?useUnicode=true&characterEncoding=UTF-8&useSSL=false&serverTimezone=Asia/Shanghai
+     username: root
+     password: zhangqian
+ 
+Index: mall-gateway/src/main/java/com/qian/mall/gateway/config/QianCorsConfiguration.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- mall-gateway/src/main/java/com/qian/mall/gateway/config/QianCorsConfiguration.java	(date 1600680935031)
++++ mall-gateway/src/main/java/com/qian/mall/gateway/config/QianCorsConfiguration.java	(date 1600680935031)
+@@ -0,0 +1,27 @@
++package com.qian.mall.gateway.config;
++
++import org.springframework.context.annotation.Bean;
++import org.springframework.context.annotation.Configuration;
++
++import org.springframework.web.cors.CorsConfiguration;
++import org.springframework.web.cors.reactive.CorsWebFilter;
++import org.springframework.web.cors.reactive.UrlBasedCorsConfigurationSource;
++
++
++@Configuration
++public class QianCorsConfiguration {
++
++@Bean
++    public CorsWebFilter corsWebFilter(){
++    UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
++    CorsConfiguration config = new CorsConfiguration();
++    config.setAllowCredentials(true);
++    config.addAllowedOrigin("*");
++    config.addAllowedHeader("*");
++    config.addAllowedMethod("*");
++    source.registerCorsConfiguration("/**", config);
++    return new CorsWebFilter(source);
++    }
++
++}
++
+Index: mall-common/src/main/java/com/qian/common/exception/BizCodeEnume.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- mall-common/src/main/java/com/qian/common/exception/BizCodeEnume.java	(date 1601718294605)
++++ mall-common/src/main/java/com/qian/common/exception/BizCodeEnume.java	(date 1601718294605)
+@@ -0,0 +1,37 @@
++package com.qian.common.exception;
++
++
++/***
++ * 错误码和错误信息定义类
++ * 1. 错误码定义规则为5为数字
++ * 2. 前两位表示业务场景，最后三位表示错误码。例如：100001。10:通用 001:系统未知异常
++ * 3. 维护错误码后需要维护错误描述，将他们定义为枚举形式
++ * 错误码列表：
++ *  10: 通用
++ *      001：参数格式校验
++ *  11: 商品
++ *  12: 订单
++ *  13: 购物车
++ *  14: 物流
++ *
++ *
++ */
++public enum BizCodeEnume {
++    UNKNOW_EXCEPTION(10000,"系统未知异常"),
++    VAILD_EXCEPTION(10001,"参数格式校验失败");
++
++    private int code;
++    private String msg;
++    BizCodeEnume(int code,String msg){
++        this.code = code;
++        this.msg = msg;
++    }
++
++    public int getCode() {
++        return code;
++    }
++
++    public String getMsg() {
++        return msg;
++    }
++}
+Index: mall-product/src/main/java/com/qian/mall/product/exception/QianExceptionControllerAdvice.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- mall-product/src/main/java/com/qian/mall/product/exception/QianExceptionControllerAdvice.java	(date 1601718589327)
++++ mall-product/src/main/java/com/qian/mall/product/exception/QianExceptionControllerAdvice.java	(date 1601718589327)
+@@ -0,0 +1,33 @@
++package com.qian.mall.product.exception;
++
++import com.qian.common.exception.BizCodeEnume;
++import com.qian.common.utils.R;
++import lombok.extern.slf4j.Slf4j;
++import org.springframework.validation.BindingResult;
++import org.springframework.web.bind.MethodArgumentNotValidException;
++import org.springframework.web.bind.annotation.ExceptionHandler;
++import org.springframework.web.bind.annotation.RequestMapping;
++import org.springframework.web.bind.annotation.RestControllerAdvice;
++
++import java.util.HashMap;
++import java.util.Map;
++
++@Slf4j
++@RestControllerAdvice(basePackages = "com.qian.mall.product.controller")
++public class QianExceptionControllerAdvice {
++
++    @ExceptionHandler(value = MethodArgumentNotValidException.class)
++    public R handlerVailExpected(MethodArgumentNotValidException e) {
++        log.error("效验数据出现问题{},异常类型为{}", e.getMessage(), e.getClass());
++        BindingResult bindingResult = e.getBindingResult();
++        Map<String, String> map = new HashMap<>();
++        bindingResult.getFieldErrors().forEach((item) -> {
++            map.put(item.getField(), item.getDefaultMessage());
++        });
++        return R.error(BizCodeEnume.VAILD_EXCEPTION.getCode(), BizCodeEnume.VAILD_EXCEPTION.getMsg()).put("map", map);
++    }
++    @ExceptionHandler(value = Throwable.class)
++    public R handlerThrowable(Throwable throwable){
++        return R.error(BizCodeEnume.UNKNOW_EXCEPTION.getCode(), BizCodeEnume.UNKNOW_EXCEPTION.getMsg()).put("map",throwable.getMessage());
++    }
++}
+Index: renren-fast/pom.xml
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+><?xml version=\"1.0\" encoding=\"UTF-8\"?>\r\n<project xmlns=\"http://maven.apache.org/POM/4.0.0\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\"\r\n\txsi:schemaLocation=\"http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd\">\r\n\t<modelVersion>4.0.0</modelVersion>\r\n\t<groupId>io.renren</groupId>\r\n\t<artifactId>renren-fast</artifactId>\r\n\t<version>3.0.0</version>\r\n\t<packaging>jar</packaging>\r\n\t<description>renren-fast</description>\r\n\r\n\t<parent>\r\n\t\t<groupId>org.springframework.boot</groupId>\r\n\t\t<artifactId>spring-boot-starter-parent</artifactId>\r\n\t\t<version>2.2.4.RELEASE</version>\r\n\t</parent>\r\n\r\n\t<properties>\r\n\t\t<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>\r\n\t\t<project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>\r\n\t\t<java.version>1.8</java.version>\r\n\t\t<mybatisplus.version>3.3.1</mybatisplus.version>\r\n\t\t<mysql.version>8.0.17</mysql.version>\r\n\t\t<mssql.version>4.0</mssql.version>\r\n\t\t<oracle.version>11.2.0.3</oracle.version>\r\n\t\t<druid.version>1.1.13</druid.version>\r\n\t\t<quartz.version>2.3.0</quartz.version>\r\n\t\t<commons.lang.version>2.6</commons.lang.version>\r\n\t\t<commons.fileupload.version>1.2.2</commons.fileupload.version>\r\n\t\t<commons.io.version>2.5</commons.io.version>\r\n\t\t<commons.codec.version>1.10</commons.codec.version>\r\n\t\t<commons.configuration.version>1.10</commons.configuration.version>\r\n\t\t<shiro.version>1.4.0</shiro.version>\r\n\t\t<jwt.version>0.7.0</jwt.version>\r\n\t\t<kaptcha.version>0.0.9</kaptcha.version>\r\n\t\t<qiniu.version>7.2.23</qiniu.version>\r\n\t\t<aliyun.oss.version>2.8.3</aliyun.oss.version>\r\n\t\t<qcloud.cos.version>4.4</qcloud.cos.version>\r\n\t\t<swagger.version>2.7.0</swagger.version>\r\n\t\t<joda.time.version>2.9.9</joda.time.version>\r\n\t\t<gson.version>2.8.5</gson.version>\r\n\t\t<fastjson.version>1.2.72</fastjson.version>\r\n\t\t<hutool.version>4.1.1</hutool.version>\r\n\t\t<lombok.version>1.18.4</lombok.version>\r\n\r\n\t\t<!--wagon plugin 配置-->\r\n\t\t<service-path>/work/renren</service-path>\r\n\t\t<pack-name>${project.artifactId}-${project.version}.jar</pack-name>\r\n\t\t<remote-addr>192.168.1.10:22</remote-addr>\r\n\t\t<remote-username>root</remote-username>\r\n\t\t<remote-passwd>123456</remote-passwd>\r\n\t</properties>\r\n\r\n\t<dependencies>\r\n\t\t<dependency>\r\n\t\t\t<groupId>org.springframework.boot</groupId>\r\n\t\t\t<artifactId>spring-boot-starter-test</artifactId>\r\n\t\t\t<scope>test</scope>\r\n\t\t</dependency>\r\n\t\t<dependency>\r\n\t\t\t<groupId>org.springframework.boot</groupId>\r\n\t\t\t<artifactId>spring-boot-starter-web</artifactId>\r\n\t\t</dependency>\r\n\t\t<dependency>\r\n\t\t\t<groupId>org.springframework.boot</groupId>\r\n\t\t\t<artifactId>spring-boot-starter-aop</artifactId>\r\n\t\t</dependency>\r\n\t\t<dependency>\r\n\t\t\t<groupId>org.springframework</groupId>\r\n\t\t\t<artifactId>spring-context-support</artifactId>\r\n\t\t</dependency>\r\n\t\t<dependency>\r\n\t\t\t<groupId>org.springframework.boot</groupId>\r\n\t\t\t<artifactId>spring-boot-starter-data-redis</artifactId>\r\n\t\t</dependency>\r\n\t\t<dependency>\r\n\t\t\t<groupId>org.springframework.boot</groupId>\r\n\t\t\t<artifactId>spring-boot-configuration-processor</artifactId>\r\n\t\t\t<optional>true</optional>\r\n\t\t</dependency>\r\n\t\t<!--<dependency>-->\r\n\t\t\t<!--<groupId>org.springframework.boot</groupId>-->\r\n\t\t\t<!--<artifactId>spring-boot-devtools</artifactId>-->\r\n\t\t\t<!--<optional>true</optional>-->\r\n\t\t<!--</dependency>-->\r\n\t\t<dependency>\r\n\t\t\t<groupId>com.baomidou</groupId>\r\n\t\t\t<artifactId>mybatis-plus-boot-starter</artifactId>\r\n\t\t\t<version>${mybatisplus.version}</version>\r\n\t\t\t<exclusions>\r\n\t\t\t\t<exclusion>\r\n\t\t\t\t\t<groupId>com.baomidou</groupId>\r\n\t\t\t\t\t<artifactId>mybatis-plus-generator</artifactId>\r\n\t\t\t\t</exclusion>\r\n\t\t\t</exclusions>\r\n\t\t</dependency>\r\n\t\t<dependency>\r\n\t\t\t<groupId>mysql</groupId>\r\n\t\t\t<artifactId>mysql-connector-java</artifactId>\r\n\t\t\t<version>${mysql.version}</version>\r\n\t\t</dependency>\r\n\t\t <!--oracle驱动-->\r\n\t\t<dependency>\r\n\t\t\t<groupId>com.oracle</groupId>\r\n\t\t\t<artifactId>ojdbc6</artifactId>\r\n\t\t\t<version>${oracle.version}</version>\r\n\t\t</dependency>\r\n\t\t <!--mssql驱动-->\r\n\t\t<dependency>\r\n\t\t\t<groupId>com.microsoft.sqlserver</groupId>\r\n\t\t\t<artifactId>sqljdbc4</artifactId>\r\n\t\t\t<version>${mssql.version}</version>\r\n\t\t</dependency>\r\n\t\t <!--postgresql驱动-->\r\n\t\t<dependency>\r\n\t\t\t<groupId>org.postgresql</groupId>\r\n\t\t\t<artifactId>postgresql</artifactId>\r\n\t\t</dependency>\r\n\t\t<dependency>\r\n\t\t\t<groupId>com.alibaba</groupId>\r\n\t\t\t<artifactId>druid-spring-boot-starter</artifactId>\r\n\t\t\t<version>${druid.version}</version>\r\n\t\t</dependency>\r\n\t\t<dependency>\r\n\t\t\t<groupId>org.quartz-scheduler</groupId>\r\n\t\t\t<artifactId>quartz</artifactId>\r\n\t\t\t<version>${quartz.version}</version>\r\n\t\t\t<exclusions>\r\n\t\t\t\t<exclusion>\r\n\t\t\t\t\t<groupId>com.mchange</groupId>\r\n\t\t\t\t\t<artifactId>c3p0</artifactId>\r\n\t\t\t\t</exclusion>\r\n\t\t\t</exclusions>\r\n\t\t</dependency>\r\n\t\t<dependency>\r\n\t\t\t<groupId>commons-lang</groupId>\r\n\t\t\t<artifactId>commons-lang</artifactId>\r\n\t\t\t<version>${commons.lang.version}</version>\r\n\t\t</dependency>\r\n\t\t<dependency>\r\n\t\t\t<groupId>commons-fileupload</groupId>\r\n\t\t\t<artifactId>commons-fileupload</artifactId>\r\n\t\t\t<version>${commons.fileupload.version}</version>\r\n\t\t</dependency>\r\n\t\t<dependency>\r\n\t\t\t<groupId>commons-io</groupId>\r\n\t\t\t<artifactId>commons-io</artifactId>\r\n\t\t\t<version>${commons.io.version}</version>\r\n\t\t</dependency>\r\n\t\t<dependency>\r\n\t\t\t<groupId>commons-codec</groupId>\r\n\t\t\t<artifactId>commons-codec</artifactId>\r\n\t\t\t<version>${commons.codec.version}</version>\r\n\t\t</dependency>\r\n\t\t<dependency>\r\n\t\t\t<groupId>commons-configuration</groupId>\r\n\t\t\t<artifactId>commons-configuration</artifactId>\r\n\t\t\t<version>${commons.configuration.version}</version>\r\n\t\t</dependency>\r\n\t\t<dependency>\r\n\t\t\t<groupId>org.apache.shiro</groupId>\r\n\t\t\t<artifactId>shiro-core</artifactId>\r\n\t\t\t<version>${shiro.version}</version>\r\n\t\t</dependency>\r\n\t\t<dependency>\r\n\t\t\t<groupId>org.apache.shiro</groupId>\r\n\t\t\t<artifactId>shiro-spring</artifactId>\r\n\t\t\t<version>${shiro.version}</version>\r\n\t\t</dependency>\r\n\t\t<dependency>\r\n\t\t\t<groupId>io.jsonwebtoken</groupId>\r\n\t\t\t<artifactId>jjwt</artifactId>\r\n\t\t\t<version>${jwt.version}</version>\r\n\t\t</dependency>\r\n\t\t<dependency>\r\n\t\t\t<groupId>com.github.axet</groupId>\r\n\t\t\t<artifactId>kaptcha</artifactId>\r\n\t\t\t<version>${kaptcha.version}</version>\r\n\t\t</dependency>\r\n\t\t<dependency>\r\n\t\t\t<groupId>io.springfox</groupId>\r\n\t\t\t<artifactId>springfox-swagger2</artifactId>\r\n\t\t\t<version>${swagger.version}</version>\r\n\t\t</dependency>\r\n\t\t<dependency>\r\n\t\t\t<groupId>io.springfox</groupId>\r\n\t\t\t<artifactId>springfox-swagger-ui</artifactId>\r\n\t\t\t<version>${swagger.version}</version>\r\n\t\t</dependency>\r\n\t\t<dependency>\r\n\t\t\t<groupId>com.qiniu</groupId>\r\n\t\t\t<artifactId>qiniu-java-sdk</artifactId>\r\n\t\t\t<version>${qiniu.version}</version>\r\n\t\t</dependency>\r\n\t\t<dependency>\r\n\t\t\t<groupId>com.aliyun.oss</groupId>\r\n\t\t\t<artifactId>aliyun-sdk-oss</artifactId>\r\n\t\t\t<version>${aliyun.oss.version}</version>\r\n\t\t</dependency>\r\n\t\t<dependency>\r\n\t\t\t<groupId>com.qcloud</groupId>\r\n\t\t\t<artifactId>cos_api</artifactId>\r\n\t\t\t<version>${qcloud.cos.version}</version>\r\n\t\t\t<exclusions>\r\n\t\t\t\t<exclusion>\r\n\t\t\t\t\t<groupId>org.slf4j</groupId>\r\n\t\t\t\t\t<artifactId>slf4j-log4j12</artifactId>\r\n\t\t\t\t</exclusion>\r\n\t\t\t</exclusions>\r\n\t\t</dependency>\r\n\t\t<dependency>\r\n\t\t\t<groupId>joda-time</groupId>\r\n\t\t\t<artifactId>joda-time</artifactId>\r\n\t\t\t<version>${joda.time.version}</version>\r\n\t\t</dependency>\r\n\t\t<dependency>\r\n\t\t\t<groupId>com.google.code.gson</groupId>\r\n\t\t\t<artifactId>gson</artifactId>\r\n\t\t\t<version>${gson.version}</version>\r\n\t\t</dependency>\r\n\t\t<dependency>\r\n\t\t\t<groupId>com.alibaba</groupId>\r\n\t\t\t<artifactId>fastjson</artifactId>\r\n\t\t\t<version>${fastjson.version}</version>\r\n\t\t</dependency>\r\n\t\t<dependency>\r\n\t\t\t<groupId>cn.hutool</groupId>\r\n\t\t\t<artifactId>hutool-all</artifactId>\r\n\t\t\t<version>${hutool.version}</version>\r\n\t\t</dependency>\r\n\t\t<dependency>\r\n\t\t\t<groupId>org.projectlombok</groupId>\r\n\t\t\t<artifactId>lombok</artifactId>\r\n\t\t\t<version>${lombok.version}</version>\r\n\t\t</dependency>\r\n\t</dependencies>\r\n\r\n\t<build>\r\n\t\t<finalName>${project.artifactId}</finalName>\r\n\t\t<extensions>\r\n\t\t\t<extension>\r\n\t\t\t\t<groupId>org.apache.maven.wagon</groupId>\r\n\t\t\t\t<artifactId>wagon-ssh</artifactId>\r\n\t\t\t\t<version>2.8</version>\r\n\t\t\t</extension>\r\n\t\t</extensions>\r\n\t\t<plugins>\r\n\t\t\t<plugin>\r\n\t\t\t\t<groupId>org.springframework.boot</groupId>\r\n\t\t\t\t<artifactId>spring-boot-maven-plugin</artifactId>\r\n\t\t\t\t<configuration>\r\n\t\t\t\t\t<fork>true</fork>\r\n\t\t\t\t</configuration>\r\n\t\t\t</plugin>\r\n\t\t\t<!-- 跳过单元测试 -->\r\n\t\t\t<plugin>\r\n\t\t\t\t<groupId>org.apache.maven.plugins</groupId>\r\n\t\t\t\t<artifactId>maven-surefire-plugin</artifactId>\r\n\t\t\t\t<configuration>\r\n\t\t\t\t\t<skipTests>true</skipTests>\r\n\t\t\t\t</configuration>\r\n\t\t\t</plugin>\r\n\t\t\t<plugin>\r\n\t\t\t\t<groupId>org.codehaus.mojo</groupId>\r\n\t\t\t\t<artifactId>wagon-maven-plugin</artifactId>\r\n\t\t\t\t<version>1.0</version>\r\n\t\t\t\t<configuration>\r\n\t\t\t\t\t<fromFile>target/${pack-name}</fromFile>\r\n\t\t\t\t\t<url><![CDATA[scp://${remote-username}:${remote-passwd}@${remote-addr}${service-path}]]></url>\r\n\t\t\t\t\t<commands>\r\n\t\t\t\t\t\t<!-- Kill Old Process -->\r\n\t\t\t\t\t\t<command>kill -9 `ps -ef |grep ${project.artifactId}.jar|grep -v \"grep\" |awk '{print $2}'`</command>\r\n\t\t\t\t\t\t<!-- Restart jar package，write result into renren.log -->\r\n\t\t\t\t\t\t<command><![CDATA[nohup java -jar ${service-path}/${pack-name} --spring.profiles.active=test > ${service-path}/renren.log 2>&1 & ]]></command>\r\n\t\t\t\t\t\t<command><![CDATA[netstat -nptl]]></command>\r\n\t\t\t\t\t\t<command><![CDATA[ps -ef | grep java | grep -v grep]]></command>\r\n\t\t\t\t\t</commands>\r\n\t\t\t\t\t<!-- 运行命令 mvn clean package wagon:upload-single wagon:sshexec-->\r\n\t\t\t\t\t<displayCommandOutputs>true</displayCommandOutputs>\r\n\t\t\t\t</configuration>\r\n\t\t\t</plugin>\r\n\r\n\t\t\t<plugin>\r\n\t\t\t\t<groupId>com.spotify</groupId>\r\n\t\t\t\t<artifactId>docker-maven-plugin</artifactId>\r\n\t\t\t\t<version>0.4.14</version>\r\n\t\t\t\t<!--<executions>-->\r\n\t\t\t\t\t<!--<execution>-->\r\n\t\t\t\t\t\t<!--<phase>package</phase>-->\r\n\t\t\t\t\t\t<!--<goals>-->\r\n\t\t\t\t\t\t\t<!--<goal>build</goal>-->\r\n\t\t\t\t\t\t<!--</goals>-->\r\n\t\t\t\t\t<!--</execution>-->\r\n\t\t\t\t<!--</executions>-->\r\n\t\t\t\t<configuration>\r\n\t\t\t\t\t<imageName>renren/fast</imageName>\r\n\t\t\t\t\t<dockerDirectory>${project.basedir}</dockerDirectory>\r\n\t\t\t\t\t<resources>\r\n\t\t\t\t\t\t<resource>\r\n\t\t\t\t\t\t\t<targetPath>/</targetPath>\r\n\t\t\t\t\t\t\t<directory>${project.build.directory}</directory>\r\n\t\t\t\t\t\t\t<include>${project.build.finalName}.jar</include>\r\n\t\t\t\t\t\t</resource>\r\n\t\t\t\t\t</resources>\r\n\t\t\t\t</configuration>\r\n\t\t\t\t<!-- 运行命令 mvn clean package docker:build 打包并生成docker镜像 -->\r\n\t\t\t</plugin>\r\n\t\t</plugins>\r\n\t</build>\r\n\r\n\t<repositories>\r\n\t\t<repository>\r\n\t\t\t<id>public</id>\r\n\t\t\t<name>aliyun nexus</name>\r\n\t\t\t<url>http://maven.aliyun.com/nexus/content/groups/public/</url>\r\n\t\t\t<releases>\r\n\t\t\t\t<enabled>true</enabled>\r\n\t\t\t</releases>\r\n\t\t</repository>\r\n\t</repositories>\r\n\t<pluginRepositories>\r\n\t\t<pluginRepository>\r\n\t\t\t<id>public</id>\r\n\t\t\t<name>aliyun nexus</name>\r\n\t\t\t<url>http://maven.aliyun.com/nexus/content/groups/public/</url>\r\n\t\t\t<releases>\r\n\t\t\t\t<enabled>true</enabled>\r\n\t\t\t</releases>\r\n\t\t\t<snapshots>\r\n\t\t\t\t<enabled>false</enabled>\r\n\t\t\t</snapshots>\r\n\t\t</pluginRepository>\r\n\t</pluginRepositories>\r\n\r\n</project>\r\n
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- renren-fast/pom.xml	(revision f241fe6052679b2ca840b831509dda5d0474560f)
++++ renren-fast/pom.xml	(date 1600679170938)
+@@ -52,6 +52,11 @@
+ 
+ 	<dependencies>
+ 		<dependency>
++			<groupId>com.qian</groupId>
++			<artifactId>mall-common</artifactId>
++			<version>0.0.1-SNAPSHOT</version>
++		</dependency>
++		<dependency>
+ 			<groupId>org.springframework.boot</groupId>
+ 			<artifactId>spring-boot-starter-test</artifactId>
+ 			<scope>test</scope>
+Index: mall-coupon/src/main/java/com/qian/mall/coupon/controller/CouponController.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+>package com.qian.mall.coupon.controller;\r\n\r\nimport java.util.Arrays;\r\nimport java.util.Map;\r\n\r\n\r\nimport org.springframework.beans.factory.annotation.Autowired;\r\nimport org.springframework.web.bind.annotation.PathVariable;\r\nimport org.springframework.web.bind.annotation.RequestBody;\r\nimport org.springframework.web.bind.annotation.RequestMapping;\r\nimport org.springframework.web.bind.annotation.RequestParam;\r\nimport org.springframework.web.bind.annotation.RestController;\r\n\r\nimport com.qian.mall.coupon.entity.CouponEntity;\r\nimport com.qian.mall.coupon.service.CouponService;\r\nimport com.qian.common.utils.PageUtils;\r\nimport com.qian.common.utils.R;\r\n\r\n\r\n\r\n/**\r\n * 优惠券信息\r\n *\r\n * @author zhangqian\r\n * @email 694656210@qq.com\r\n * @date 2020-09-19 13:55:18\r\n */\r\n@RestController\r\n@RequestMapping(\"coupon/coupon\")\r\npublic class CouponController {\r\n    @Autowired\r\n    private CouponService couponService;\r\n\r\n    @RequestMapping(\"/member/list\")\r\n    public R membercoupons(){\r\n        CouponEntity couponEntity=new CouponEntity();\r\n        couponEntity.setCouponName(\"满100减10\");\r\n        return R.ok().put(\"coupons\",Arrays.asList(couponEntity));\r\n    }\r\n\r\n    /**\r\n     * 列表\r\n     */\r\n    @RequestMapping(\"/list\")\r\n    public R list(@RequestParam Map<String, Object> params){\r\n        PageUtils page = couponService.queryPage(params);\r\n\r\n        return R.ok().put(\"page\", page);\r\n    }\r\n\r\n\r\n    /**\r\n     * 信息\r\n     */\r\n    @RequestMapping(\"/info/{id}\")\r\n    public R info(@PathVariable(\"id\") Long id){\r\n\t\tCouponEntity coupon = couponService.getById(id);\r\n\r\n        return R.ok().put(\"coupon\", coupon);\r\n    }\r\n\r\n    /**\r\n     * 保存\r\n     */\r\n    @RequestMapping(\"/save\")\r\n    public R save(@RequestBody CouponEntity coupon){\r\n\t\tcouponService.save(coupon);\r\n\r\n        return R.ok();\r\n    }\r\n\r\n    /**\r\n     * 修改\r\n     */\r\n    @RequestMapping(\"/update\")\r\n    public R update(@RequestBody CouponEntity coupon){\r\n\t\tcouponService.updateById(coupon);\r\n\r\n        return R.ok();\r\n    }\r\n\r\n    /**\r\n     * 删除\r\n     */\r\n    @RequestMapping(\"/delete\")\r\n    public R delete(@RequestBody Long[] ids){\r\n\t\tcouponService.removeByIds(Arrays.asList(ids));\r\n\r\n        return R.ok();\r\n    }\r\n\r\n}\r\n
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- mall-coupon/src/main/java/com/qian/mall/coupon/controller/CouponController.java	(revision f241fe6052679b2ca840b831509dda5d0474560f)
++++ mall-coupon/src/main/java/com/qian/mall/coupon/controller/CouponController.java	(date 1600571496581)
+@@ -5,6 +5,8 @@
+ 
+ 
+ import org.springframework.beans.factory.annotation.Autowired;
++import org.springframework.beans.factory.annotation.Value;
++import org.springframework.cloud.context.config.annotation.RefreshScope;
+ import org.springframework.web.bind.annotation.PathVariable;
+ import org.springframework.web.bind.annotation.RequestBody;
+ import org.springframework.web.bind.annotation.RequestMapping;
+@@ -25,18 +27,31 @@
+  * @email 694656210@qq.com
+  * @date 2020-09-19 13:55:18
+  */
++@RefreshScope
+ @RestController
+ @RequestMapping("coupon/coupon")
+ public class CouponController {
+     @Autowired
+     private CouponService couponService;
+ 
++    @Value("${coupon.user.name}")
++    private String name;
++    @Value("${coupon.user.age}")
++    private Integer age;
++
++    //测试信息
+     @RequestMapping("/member/list")
+     public R membercoupons(){
+         CouponEntity couponEntity=new CouponEntity();
+         couponEntity.setCouponName("满100减10");
+         return R.ok().put("coupons",Arrays.asList(couponEntity));
+     }
++    //测试信息
++    @RequestMapping("/show")
++    public R test(){
++
++        return R.ok().put("name",name).put("age",age);
++    }
+ 
+     /**
+      * 列表
+Index: mall-product/src/main/java/com/qian/mall/product/conf/MyBatisPlusPage.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- mall-product/src/main/java/com/qian/mall/product/conf/MyBatisPlusPage.java	(date 1602135578028)
++++ mall-product/src/main/java/com/qian/mall/product/conf/MyBatisPlusPage.java	(date 1602135578028)
+@@ -0,0 +1,31 @@
++package com.qian.mall.product.conf;
++
++
++import com.baomidou.mybatisplus.extension.plugins.PaginationInterceptor;
++import com.baomidou.mybatisplus.extension.plugins.pagination.optimize.JsqlParserCountOptimize;
++import org.mybatis.spring.annotation.MapperScan;
++import org.springframework.context.annotation.Bean;
++import org.springframework.context.annotation.Configuration;
++import org.springframework.transaction.annotation.EnableTransactionManagement;
++
++@Configuration
++@EnableTransactionManagement //开启事务
++@MapperScan("com.qian.mall.product.dao")
++/**
++ * Mybatis-plus分页设置
++ */
++public class MyBatisPlusPage {
++    @Bean
++    public PaginationInterceptor paginationInterceptor() {
++        PaginationInterceptor paginationInterceptor = new PaginationInterceptor();
++        // 设置请求的页面大于最大页后操作， true调回到首页，false 继续请求  默认false
++        paginationInterceptor.setOverflow(true);
++        // 设置最大单页限制数量，默认 500 条，-1 不受限制
++        paginationInterceptor.setLimit(500);
++        // 开启 count 的 join 优化,只针对部分 left join
++        paginationInterceptor.setCountSqlParser(new JsqlParserCountOptimize(true));
++        return paginationInterceptor;
++    }
++}
++
++
+Index: renren-fast/src/main/resources/application.yml
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+># Tomcat\r\nserver:\r\n  tomcat:\r\n    uri-encoding: UTF-8\r\n    max-threads: 1000\r\n    min-spare-threads: 30\r\n  port: 8080\r\n  connection-timeout: 5000ms\r\n  servlet:\r\n    context-path: /renren-fast\r\n\r\nspring:\r\n  # 环境 dev|test|prod\r\n  profiles:\r\n    active: dev\r\n  # jackson时间格式化\r\n  jackson:\r\n    time-zone: GMT+8\r\n    date-format: yyyy-MM-dd HH:mm:ss\r\n  servlet:\r\n    multipart:\r\n      max-file-size: 100MB\r\n      max-request-size: 100MB\r\n      enabled: true\r\n  redis:\r\n    open: false  # 是否开启redis缓存  true开启   false关闭\r\n    database: 0\r\n    host: localhost\r\n    port: 6379\r\n    password:    # 密码（默认为空）\r\n    timeout: 6000ms  # 连接超时时长（毫秒）\r\n    jedis:\r\n      pool:\r\n        max-active: 1000  # 连接池最大连接数（使用负值表示没有限制）\r\n        max-wait: -1ms      # 连接池最大阻塞等待时间（使用负值表示没有限制）\r\n        max-idle: 10      # 连接池中的最大空闲连接\r\n        min-idle: 5       # 连接池中的最小空闲连接\r\n  mvc:\r\n    throw-exception-if-no-handler-found: true\r\n#  resources:\r\n#    add-mappings: false\r\n\r\n\r\n#mybatis\r\nmybatis-plus:\r\n  mapper-locations: classpath*:/mapper/**/*.xml\r\n  #实体扫描，多个package用逗号或者分号分隔\r\n  typeAliasesPackage: io.renren.modules.*.entity\r\n  global-config:\r\n    #数据库相关配置\r\n    db-config:\r\n      #主键类型  AUTO:\"数据库ID自增\", INPUT:\"用户输入ID\", ID_WORKER:\"全局唯一ID (数字类型唯一ID)\", UUID:\"全局唯一ID UUID\";\r\n      id-type: AUTO\r\n      logic-delete-value: -1\r\n      logic-not-delete-value: 0\r\n    banner: false\r\n  #原生配置\r\n  configuration:\r\n    map-underscore-to-camel-case: true\r\n    cache-enabled: false\r\n    call-setters-on-nulls: true\r\n    jdbc-type-for-null: 'null'\r\n\r\n\r\nrenren:\r\n  redis:\r\n    open: false\r\n  shiro:\r\n    redis: false\r\n  # APP模块，是通过jwt认证的，如果要使用APP模块，则需要修改【加密秘钥】\r\n  jwt:\r\n    # 加密秘钥\r\n    secret: f4e2e52034348f86b67cde581c0f9eb5[www.renren.io]\r\n    # token有效时长，7天，单位秒\r\n    expire: 604800\r\n    header: token
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- renren-fast/src/main/resources/application.yml	(revision f241fe6052679b2ca840b831509dda5d0474560f)
++++ renren-fast/src/main/resources/application.yml	(date 1600679395322)
+@@ -37,10 +37,17 @@
+         min-idle: 5       # 连接池中的最小空闲连接
+   mvc:
+     throw-exception-if-no-handler-found: true
++  cloud:
++    nacos:
++      discovery:
++        server-addr: 127.0.0.1:8848
++
++
++  application:
++    name: renren-fast
+ #  resources:
+ #    add-mappings: false
+ 
+-
+ #mybatis
+ mybatis-plus:
+   mapper-locations: classpath*:/mapper/**/*.xml
+Index: mall-coupon/src/main/resources/bootstrap.properties
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+>spring.application.name=qian-coupon\r\nspring.cloud.nacos.config.server-addr=127.0.0.1:8848\r\n
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>GBK
+===================================================================
+--- mall-coupon/src/main/resources/bootstrap.properties	(revision f241fe6052679b2ca840b831509dda5d0474560f)
++++ mall-coupon/src/main/resources/bootstrap.properties	(date 1600582898366)
+@@ -1,2 +1,14 @@
+-spring.application.name=qian-coupon
++spring.application.name=mall-coupon
+ spring.cloud.nacos.config.server-addr=127.0.0.1:8848
++spring.cloud.nacos.config.namespace=bcc0fd69-6f3f-4883-88d8-674b42ff7f05
++spring.cloud.nacos.config.group=dev
++#详细的分组信息
++spring.cloud.nacos.config.extension-configs[0].data-id=datasource.yml
++spring.cloud.nacos.config.extension-configs[0].group=dev
++spring.cloud.nacos.config.extension-configs[0].refresh=true
++spring.cloud.nacos.config.extension-configs[1].data-id=mybatis.yml
++spring.cloud.nacos.config.extension-configs[1].group=dev
++spring.cloud.nacos.config.extension-configs[1].refresh=true
++spring.cloud.nacos.config.extension-configs[2].data-id=other.yml
++spring.cloud.nacos.config.extension-configs[2].group=dev
++spring.cloud.nacos.config.extension-configs[2].refresh=true
+\ No newline at end of file
+Index: mall-product/src/main/resources/bootstrap.properties
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>GBK
+===================================================================
+--- mall-product/src/main/resources/bootstrap.properties	(date 1600736992869)
++++ mall-product/src/main/resources/bootstrap.properties	(date 1600736992869)
+@@ -0,0 +1,2 @@
++spring.application.name=mall-product
++spring.cloud.nacos.config.server-addr=127.0.0.1:8848
+\ No newline at end of file
+Index: mall-coupon/src/main/resources/application.properties
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>GBK
+===================================================================
+--- mall-coupon/src/main/resources/application.properties	(revision f241fe6052679b2ca840b831509dda5d0474560f)
++++ mall-coupon/src/main/resources/application.properties	(date 1600571228345)
+@@ -1,0 +1,2 @@
++coupon.user.name=zhangqian
++coupon.user.age=15
+\ No newline at end of file

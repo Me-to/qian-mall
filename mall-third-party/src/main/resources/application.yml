@@ -1,0 +1,14 @@
+spring:
+  cloud:
+    nacos:
+      server-addr: 127.0.0.1:8848
+    alicloud:
+      access-key: LTAI4GEPT8NWiyhQ3XHtbWRG
+      secret-key: o7gDXT6RfY8H9udojWZviW4ySGYbaI
+      oss:
+        endpoint: oss-cn-zhangjiakou.aliyuncs.com
+        bucket: qian-mall
+  application:
+    name: mall-third-party
+server:
+  port: 30001
